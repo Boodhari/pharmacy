@@ -1,6 +1,6 @@
 <?php
 include 'config/db.php';
-include('includes/header.php');
+
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
+<?php include('includes/header.php'); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -6,7 +6,7 @@ if (!isset($_SESSION['username'])) {
 }
 
 include 'config/db.php';
-include('includes/header.php');
+
 
 // Handle search
 $selected_date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
@@ -24,7 +24,7 @@ $result = $conn->query($query);
 $total_query = $conn->query("SELECT SUM(total) AS total_sales FROM sales WHERE DATE(sale_date) = '$selected_date'");
 $total_sales = $total_query->fetch_assoc()['total_sales'] ?? 0;
 ?>
-
+<?php include('includes/header.php'); ?>
 <!DOCTYPE html>
 <html>
 <head>

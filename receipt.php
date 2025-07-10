@@ -27,7 +27,7 @@ if ($result->num_rows === 0) {
 
 $sale = $result->fetch_assoc();
 ?>
-
+<?php include('includes/header.php'); ?>
 <!DOCTYPE html>
 <html>
 <head>
