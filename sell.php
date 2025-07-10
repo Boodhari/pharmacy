@@ -1,11 +1,12 @@
 <?php
 session_start();
+include 'config/db.php';
 include('includes/header.php');
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
     exit;
 }
-include 'config/db.php';
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $product_id = intval($_POST['product_id']);
     $quantity = intval($_POST['quantity']);
