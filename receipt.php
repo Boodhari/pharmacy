@@ -7,14 +7,12 @@ if (!isset($_SESSION['username'])) {
 
 include 'config/db.php';
 
-// ✅ Sanitize and check sale_id BEFORE any output
-if (!isset($_GET['sale_id']) || intval($_GET['sale_id']) < 1) {
-    die("<div style='color:red; padding:15px;'>Invalid Sale ID.</div>");
+$sale_id = isset($_GET['sale_id']) ? intval($_GET['sale_id']) : 0;
+if ($sale_id < 1) {
+    die("<div style='color: red;'>Invalid Sale ID.</div>");
 }
 
-$sale_id = intval($_GET['sale_id']);
-
-// ✅ Use prepared statement for safety
+// Fetch sale and product info
 $stmt = $conn->prepare("SELECT s.*, p.name AS product_name, p.price AS unit_price 
                         FROM sales s 
                         JOIN products p ON s.product_id = p.id 
@@ -24,34 +22,33 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    die("<div style='color:red; padding:15px;'>Sale not found for ID $sale_id.</div>");
+    die("<div style='color: red;'>Sale not found.</div>");
 }
 
 $sale = $result->fetch_assoc();
 ?>
 
-<?php include('includes/header.php'); ?>
 <!DOCTYPE html>
 <html>
 <head>
   <title>Receipt - Pharmacy POS</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    @media print {
-      button, a { display: none; }
-    }
     .receipt-card {
       max-width: 500px;
-      margin: 50px auto;
+      margin: 40px auto;
       padding: 30px;
       border: 1px solid #ccc;
-      background: #fff;
+      background: white;
+    }
+    @media print {
+      button, a { display: none; }
     }
   </style>
 </head>
 <body class="bg-light">
 <div class="receipt-card">
-  <h4 class="text-center mb-4">🧾 Pharmacy Receipt</h4>
+  <h4 class="text-center mb-4">🧾 Smart Dental Pharmacy Receipt</h4>
   <p><strong>Product:</strong> <?= htmlspecialchars($sale['product_name']) ?></p>
   <p><strong>Unit Price:</strong> <?= number_format($sale['unit_price'], 2) ?> SLSH</p>
   <p><strong>Quantity:</strong> <?= $sale['quantity_sold'] ?></p>
