@@ -1,11 +1,11 @@
 <?php
 session_start();
+include('includes/header.php');
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
     exit;
 }
 include 'config/db.php';
-include('includes/header.php');
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $product_id = intval($_POST['product_id']);
     $quantity = intval($_POST['quantity']);
@@ -29,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($stmt->affected_rows > 0) {
             // Update product stock
             $conn->query("UPDATE products SET quantity = quantity - $quantity WHERE id = $product_id");
-
             $sale_id = $stmt->insert_id;
             header("Location: receipt.php?sale_id=$sale_id");
             exit;
