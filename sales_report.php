@@ -81,7 +81,7 @@ $total_sales = $total_query->fetch_assoc()['total_sales'] ?? 0;
         <tfoot class="table-light">
           <tr>
             <th colspan="4" class="text-end">Total Sales:</th>
-            <th colspan="2">$<?= number_format($total_sales, 2) ?></th>
+            <th colspan="2">SLSH<?= number_format($total_sales, 2) ?></th>
           </tr>
         </tfoot>
       </table>

@@ -81,7 +81,7 @@ $result = $stmt->get_result();
               <td><?= htmlspecialchars($row['full_name']) ?></td>
               <td><?= htmlspecialchars($row['phone']) ?></td>
               <td><?= htmlspecialchars($row['purpose']) ?></td>
-              <td><?= htmlspecialchars($row['Paid']) ?></td>
+              <td>SLSH<?= htmlspecialchars($row['Paid']) ?></td>
               <td><?= date('d M Y - H:i', strtotime($row['visit_date'])) ?></td>
             </tr>
           <?php endwhile; ?>

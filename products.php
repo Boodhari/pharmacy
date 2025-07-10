@@ -28,7 +28,7 @@ $result = $conn->query("SELECT * FROM products");
       <?php while($row = $result->fetch_assoc()): ?>
         <tr>
           <td><?= htmlspecialchars($row['name']) ?></td>
-          <td>$<?= number_format($row['price'], 2) ?></td>
+          <td>SLSH<?= number_format($row['price'], 2) ?></td>
           <td><?= $row['quantity'] ?></td>
         </tr>
       <?php endwhile; ?>

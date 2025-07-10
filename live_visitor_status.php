@@ -40,7 +40,7 @@ $result = $conn->query("SELECT * FROM visitors ORDER BY visit_date DESC");
             <td><?= $i++ ?></td>
             <td><?= htmlspecialchars($row['full_name']) ?></td>
             <td><?= htmlspecialchars($row['purpose']) ?></td>
-            <td><?= htmlspecialchars($row['Paid']) ?></td>
+            <td>SLSH<?= htmlspecialchars($row['Paid']) ?></td>
             <td><?= date('d M Y - H:i', strtotime($row['visit_date'])) ?></td>
             <td>
               <?php
