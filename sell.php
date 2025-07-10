@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Fetch products for dropdown
 $products = $conn->query("SELECT * FROM products");
 ?>
-
+<?php include('includes/header.php'); ?>
 <!DOCTYPE html>
 <html>
 <head>
