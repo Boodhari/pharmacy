@@ -1,7 +1,7 @@
 <?php
 session_start();
 include 'config/db.php';
-include('includes/header.php');
+
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
     exit;
@@ -42,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 $products_result = $conn->query("SELECT * FROM products");
 ?>
 
+<?php include('includes/header.php'); ?>
 <!DOCTYPE html>
 <html>
 <head>
