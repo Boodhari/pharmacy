@@ -6,27 +6,31 @@ if (!isset($_SESSION['username'])) {
 }
 
 include 'config/db.php';
-include('includes/header.php');
+
+// ✅ Sanitize and check sale_id BEFORE any output
 if (!isset($_GET['sale_id']) || intval($_GET['sale_id']) < 1) {
-    die("Invalid Sale ID.");
+    die("<div style='color:red; padding:15px;'>Invalid Sale ID.</div>");
 }
 
 $sale_id = intval($_GET['sale_id']);
 
-$query = "SELECT s.*, p.name, p.price 
-          FROM sales s 
-          JOIN products p ON s.product_id = p.id 
-          WHERE s.id = $sale_id";
-
-$result = $conn->query($query);
+// ✅ Use prepared statement for safety
+$stmt = $conn->prepare("SELECT s.*, p.name AS product_name, p.price AS unit_price 
+                        FROM sales s 
+                        JOIN products p ON s.product_id = p.id 
+                        WHERE s.id = ?");
+$stmt->bind_param("i", $sale_id);
+$stmt->execute();
+$result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    die("Sale not found.");
+    die("<div style='color:red; padding:15px;'>Sale not found for ID $sale_id.</div>");
 }
 
 $sale = $result->fetch_assoc();
 ?>
 
+<?php include('includes/header.php'); ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,22 +38,33 @@ $sale = $result->fetch_assoc();
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     @media print {
-      button { display: none; }
+      button, a { display: none; }
+    }
+    .receipt-card {
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 30px;
+      border: 1px solid #ccc;
+      background: #fff;
     }
   </style>
 </head>
 <body class="bg-light">
-<div class="container mt-5">
-  <div class="card p-4">
-    <h3 class="text-center mb-4">Pharmacy Receipt</h3>
-    <p><strong>Product:</strong> <?= htmlspecialchars($sale['name']) ?></p>
-    <p><strong>Unit Price:</strong> $<?= number_format($sale['price'], 2) ?></p>
-    <p><strong>Quantity:</strong> <?= $sale['quantity_sold'] ?></p>
-    <p><strong>Total:</strong> $<?= number_format($sale['total'], 2) ?></p>
-    <p><strong>Date:</strong> <?= $sale['sale_date'] ?></p>
-    <button onclick="window.print()" class="btn btn-primary mt-3">Print Receipt</button>
+<div class="receipt-card">
+  <h4 class="text-center mb-4">🧾 Pharmacy Receipt</h4>
+  <p><strong>Product:</strong> <?= htmlspecialchars($sale['product_name']) ?></p>
+  <p><strong>Unit Price:</strong> <?= number_format($sale['unit_price'], 2) ?> SLSH</p>
+  <p><strong>Quantity:</strong> <?= $sale['quantity_sold'] ?></p>
+  <p><strong>Total:</strong> <?= number_format($sale['total'], 2) ?> SLSH</p>
+  <p><strong>Date:</strong> <?= date('d M Y - H:i', strtotime($sale['sale_date'])) ?></p>
+
+  <div class="text-center mt-4">
+    <button onclick="window.print()" class="btn btn-primary">🖨️ Print</button>
   </div>
-  <a href="dashboard.php" class="mt-3 d-block">Back to Dashboard</a>
+</div>
+
+<div class="text-center mt-3">
+  <a href="dashboard.php" class="btn btn-secondary">⬅️ Back to Dashboard</a>
 </div>
 </body>
 </html>
