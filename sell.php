@@ -4,7 +4,6 @@ if (!isset($_SESSION['username'])) {
     header("Location: login.php");
     exit;
 }
-
 include 'config/db.php';
 include('includes/header.php');
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
