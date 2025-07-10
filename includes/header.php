@@ -1,4 +1,3 @@
-<?php
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,4 +13,3 @@
   </div>
 </nav>
 <div class="container py-4">
-?>
