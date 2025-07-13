@@ -52,7 +52,16 @@ while ($row = $result->fetch_assoc()) {
       background: white;
     }
     @media print {
-    body,  button, a { display: none; }
+      body * { visibility: hidden; }
+      .receipt-card, .receipt-card * { visibility: visible; }
+      .receipt-card {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 20px;
+        background: #fff;
+      }
     }
   </style>
 </head>
@@ -95,8 +104,9 @@ while ($row = $result->fetch_assoc()) {
   </div>
 </div>
 
-<div class="text-center mt-3">
-  <a href="dashboard.php" class="btn btn-secondary">⬅️ Back to Dashboards</a>
-</div>
+  <div class="text-center mt-3 no-print">
+    <button class="btn btn-primary" onclick="window.print()">🖨 Print</button>
+    <a href="dashboard.php" class="btn btn-secondary">⬅️ Back</a>
+  </div>
 </body>
 </html>
