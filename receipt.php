@@ -7,25 +7,34 @@ if (!isset($_SESSION['username'])) {
 
 include 'config/db.php';
 
-$sale_id = isset($_GET['sale_id']) ? intval($_GET['sale_id']) : 0;
-if ($sale_id < 1) {
-    die("<div style='color: red;'>Invalid Sale ID.</div>");
+// Get transaction ID from URL
+$txn_id = $_GET['txn_id'] ?? '';
+if (empty($txn_id)) {
+    die("<div style='color: red;'>Invalid Transaction ID.</div>");
 }
 
-// Fetch sale and product info
+// Fetch all sales under this transaction
 $stmt = $conn->prepare("SELECT s.*, p.name AS product_name, p.price AS unit_price 
                         FROM sales s 
                         JOIN products p ON s.product_id = p.id 
-                        WHERE s.id = ?");
-$stmt->bind_param("i", $sale_id);
+                        WHERE s.transaction_id = ?");
+$stmt->bind_param("s", $txn_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    die("<div style='color: red;'>Sale not found.</div>");
+    die("<div style='color: red;'>No sales found for this transaction.</div>");
 }
 
-$sale = $result->fetch_assoc();
+$sales = [];
+$total_amount = 0;
+$sale_date = "";
+
+while ($row = $result->fetch_assoc()) {
+    $sales[] = $row;
+    $total_amount += $row['total'];
+    $sale_date = $row['sale_date']; // Assume same for all in transaction
+}
 ?>
 <?php include('includes/header.php'); ?>
 <!DOCTYPE html>
@@ -35,7 +44,7 @@ $sale = $result->fetch_assoc();
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     .receipt-card {
-      max-width: 500px;
+      max-width: 600px;
       margin: 40px auto;
       padding: 30px;
       border: 1px solid #ccc;
@@ -49,11 +58,36 @@ $sale = $result->fetch_assoc();
 <body class="bg-light">
 <div class="receipt-card">
   <h4 class="text-center mb-4">🧾 Smart Dental Pharmacy Receipt</h4>
-  <p><strong>Product:</strong> <?= htmlspecialchars($sale['product_name']) ?></p>
-  <p><strong>Unit Price:</strong> <?= number_format($sale['unit_price'], 2) ?> SLSH</p>
-  <p><strong>Quantity:</strong> <?= $sale['quantity_sold'] ?></p>
-  <p><strong>Total:</strong> <?= number_format($sale['total'], 2) ?> SLSH</p>
-  <p><strong>Date:</strong> <?= date('d M Y - H:i', strtotime($sale['sale_date'])) ?></p>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Unit Price</th>
+        <th>Qty</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php foreach ($sales as $s): ?>
+        <tr>
+          <td><?= htmlspecialchars($s['product_name']) ?></td>
+          <td><?= number_format($s['unit_price'], 2) ?> SLSH</td>
+          <td><?= $s['quantity_sold'] ?></td>
+          <td><?= number_format($s['total'], 2) ?> SLSH</td>
+        </tr>
+      <?php endforeach; ?>
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="3" class="text-end">Total</th>
+        <th><?= number_format($total_amount, 2) ?> SLSH</th>
+      </tr>
+      <tr>
+        <td colspan="4" class="text-end">Date: <?= date('d M Y - H:i', strtotime($sale_date)) ?></td>
+      </tr>
+    </tfoot>
+  </table>
 
   <div class="text-center mt-4">
     <button onclick="window.print()" class="btn btn-primary">🖨️ Print</button>
