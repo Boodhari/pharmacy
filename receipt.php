@@ -100,7 +100,7 @@ while ($row = $result->fetch_assoc()) {
     </tfoot>
   </table>
 
-  <div class="text-center mt-4">
+  <div class="text-center mt-4 no-print">
     <button onclick="window.print()" class="btn btn-primary">🖨️ Print</button>
   </div>
 </div>
