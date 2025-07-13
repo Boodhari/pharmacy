@@ -96,7 +96,7 @@ while ($row = $result->fetch_assoc()) {
 </div>
 
 <div class="text-center mt-3">
-  <a href="dashboard.php" class="btn btn-secondary">⬅️ Back to Dashboard</a>
+  <a href="dashboard.php" class="btn btn-secondary">⬅️ Back to Dashboards</a>
 </div>
 </body>
 </html>
