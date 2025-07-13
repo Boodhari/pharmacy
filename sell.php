@@ -12,6 +12,7 @@ $products = $conn->query("SELECT * FROM products");
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product_ids = $_POST['product_id'];
     $quantities = $_POST['quantity'];
+    $payment_type = $_POST['payment_type'] ;
 
     $transaction_id = uniqid("txn_");
 
@@ -30,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $total = $quantity * $product['price'];
 
-        $stmt = $conn->prepare("INSERT INTO sales (transaction_id, product_id, quantity_sold, total) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("siid", $transaction_id, $product_id, $quantity, $total);
+        $stmt = $conn->prepare("INSERT INTO sales (transaction_id, product_id, quantity_sold, total,payment_type) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("siids", $transaction_id, $product_id, $quantity, $total);
         $stmt->execute();
 
         $conn->query("UPDATE products SET quantity = quantity - $quantity WHERE id = $product_id");
@@ -76,6 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div class="col-md-4">
           <input type="number" name="quantity[]" class="form-control" placeholder="Quantity" min="1" required>
+        </div>
+         <div class="col-md-4">
+          <input type="text" name="payment_type" class="form-control" placeholder="Payment_type"  required>
         </div>
       </div>
     </div>
