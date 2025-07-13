@@ -7,12 +7,14 @@ if (!isset($_SESSION['username'])) {
 
 include 'config/db.php';
 
-$products = $conn->query("SELECT * FROM products");
+// Fetch only in-stock products
+$products = $conn->query("SELECT * FROM products WHERE quantity > 0");
+$has_products = $products->num_rows > 0;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product_ids = $_POST['product_id'];
     $quantities = $_POST['quantity'];
-    $payment_type = $_POST['payment_type'] ;
+    $payment_type = $_POST['payment_type'];
 
     $transaction_id = uniqid("txn_");
 
@@ -26,12 +28,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $product = $res->fetch_assoc();
 
         if (!$product || $product['quantity'] < $quantity) {
-            continue; // Skip invalid or insufficient stock
+            continue;
         }
 
         $total = $quantity * $product['price'];
 
-        $stmt = $conn->prepare("INSERT INTO sales (transaction_id, product_id, quantity_sold, total,payment_type) VALUES (?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO sales (transaction_id, product_id, quantity_sold, total, payment_type) VALUES (?, ?, ?, ?, ?)");
         $stmt->bind_param("siids", $transaction_id, $product_id, $quantity, $total, $payment_type);
         $stmt->execute();
 
@@ -60,6 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-light">
 <div class="container py-5">
   <h2>🛒 Sell Multiple Products</h2>
+
+  <?php if (!$has_products): ?>
+    <div class="alert alert-danger mt-4">
+      🚫 All products are out of stock. Please restock before selling.
+    </div>
+  <?php else: ?>
   <form method="POST">
     <div id="product-container">
       <div class="row g-2 mb-3">
@@ -67,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <select name="product_id[]" class="form-select" required>
             <option value="">-- Select Product --</option>
             <?php
-            $products->data_seek(0); // Reset pointer
+            $products->data_seek(0);
             while ($p = $products->fetch_assoc()): ?>
               <option value="<?= $p['id'] ?>">
                 <?= htmlspecialchars($p['name']) ?> (<?= $p['quantity'] ?> in stock)
@@ -78,27 +86,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="col-md-4">
           <input type="number" name="quantity[]" class="form-control" placeholder="Quantity" min="1" required>
         </div>
-         
       </div>
     </div>
+
     <button type="button" onclick="addRow()" class="btn btn-sm btn-secondary mb-3">➕ Add Another Product</button>
-    <br>
-<div class="col-md-4 float-end">
-          <label>Payment Type</label>
-  <select name="payment_type" class="form-select" required>
-    <option value="Zaad-SLSH">Zaad - SLSH</option>
-    <option value="Zaad-USD">Zaad - USD</option>
-    <option value="Edahab-SLSH">Edahab - SLSH</option>
-    <option value="Edahab-USD">Edahab - USD</option>
-    <option value="EVC">EVC</option>
-    <option value="Cash-SLSH">Cash - SLSH</option>
-    <option value="Cash-USD">Cash - USD</option>
-  </select>
-        </div>
+
+    <div class="mb-3 col-md-4 float-end">
+      <label>Payment Type</label>
+      <select name="payment_type" class="form-select" required>
+        <option value="Zaad-SLSH">Zaad - SLSH</option>
+        <option value="Zaad-USD">Zaad - USD</option>
+        <option value="Edahab-SLSH">Edahab - SLSH</option>
+        <option value="Edahab-USD">Edahab - USD</option>
+        <option value="EVC">EVC</option>
+        <option value="Cash-SLSH">Cash - SLSH</option>
+        <option value="Cash-USD">Cash - USD</option>
+      </select>
+    </div>
+
     <br>
     <button class="btn btn-success">✅ Sell & Print Receipt</button>
     <a href="dashboard.php" class="btn btn-secondary">⬅️ Back</a>
   </form>
+  <?php endif; ?>
 </div>
 </body>
 </html>
