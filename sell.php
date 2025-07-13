@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $total = $quantity * $product['price'];
 
         $stmt = $conn->prepare("INSERT INTO sales (transaction_id, product_id, quantity_sold, total,payment_type) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("siids", $transaction_id, $product_id, $quantity, $total);
+        $stmt->bind_param("siids", $transaction_id, $product_id, $quantity, $total, $payment_type);
         $stmt->execute();
 
         $conn->query("UPDATE products SET quantity = quantity - $quantity WHERE id = $product_id");
@@ -79,7 +79,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <input type="number" name="quantity[]" class="form-control" placeholder="Quantity" min="1" required>
         </div>
          <div class="col-md-4">
-          <input type="text" name="payment_type" class="form-control" placeholder="Payment_type"  required>
+          <label>Payment Type</label>
+  <select name="payment_type" class="form-select" required>
+    <option value="Zaad-SLSH">Zaad - SLSH</option>
+    <option value="Zaad-USD">Zaad - USD</option>
+    <option value="Edahab-SLSH">Edahab - SLSH</option>
+    <option value="Edahab-USD">Edahab - USD</option>
+    <option value="EVC">EVC</option>
+    <option value="Cash-SLSH">Cash - SLSH</option>
+    <option value="Cash-USD">Cash - USD</option>
+  </select>
         </div>
       </div>
     </div>
