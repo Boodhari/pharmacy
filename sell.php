@@ -78,7 +78,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="col-md-4">
           <input type="number" name="quantity[]" class="form-control" placeholder="Quantity" min="1" required>
         </div>
-         <div class="col-md-4">
+         
+      </div>
+    </div>
+    <button type="button" onclick="addRow()" class="btn btn-sm btn-secondary mb-3">➕ Add Another Product</button>
+    <br>
+<div class="col-md-4 float-end">
           <label>Payment Type</label>
   <select name="payment_type" class="form-select" required>
     <option value="Zaad-SLSH">Zaad - SLSH</option>
@@ -90,9 +95,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <option value="Cash-USD">Cash - USD</option>
   </select>
         </div>
-      </div>
-    </div>
-    <button type="button" onclick="addRow()" class="btn btn-sm btn-secondary mb-3">➕ Add Another Product</button>
     <br>
     <button class="btn btn-success">✅ Sell & Print Receipt</button>
     <a href="dashboard.php" class="btn btn-secondary">⬅️ Back</a>
