@@ -41,67 +41,47 @@ while ($row = $result->fetch_assoc()) {
 <html>
 <head>
   <title>Receipt - Pharmacy POS</title>
+  <meta charset="UTF-8">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-
-    .receipt-card {
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 30px;
-      border: 1px solid #ccc;
-      background: white;
-    }
     @media print {
-      body * {
-      visibility: hidden;
-    }
-     .no-print {
-      display: none !important;
-    }
+      body * { visibility: hidden; }
+      .receipt-card, .receipt-card * { visibility: visible; }
+      .receipt-card {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 20px;
+        background: #fff;
+      }
     }
   </style>
 </head>
-<body class="bg-light">
-<div class="receipt-card">
-  <h4 class="text-center mb-4">🧾 Smart Dental Pharmacy Receipt</h4>
-
-  <table class="table table-bordered">
-    <thead>
-      <tr>
-        <th>Product</th>
-        <th>Unit Price</th>
-        <th>Qty</th>
-        <th>Total</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php foreach ($sales as $s): ?>
-        <tr>
-          <td><?= htmlspecialchars($s['product_name']) ?></td>
-          <td><?= number_format($s['unit_price'], 2) ?> SLSH</td>
-          <td><?= $s['quantity_sold'] ?></td>
-          <td><?= number_format($s['total'], 2) ?> SLSH</td>
-        </tr>
-      <?php endforeach; ?>
-    </tbody>
-    <tfoot>
-      <tr>
-        <th colspan="3" class="text-end">Total</th>
-        <th><?= number_format($total_amount, 2) ?> SLSH</th>
-      </tr>
-      <tr>
-        <td colspan="4" class="text-end">Date: <?= date('d M Y - H:i', strtotime($sale_date)) ?></td>
-      </tr>
-    </tfoot>
-  </table>
-
-  <div class="no-print  text-center mt-4">
-    <button onclick="window.print()" class="btn btn-primary">🖨️ Print</button>
+<body>
+  <div class="receipt-card">
+    <h3 class="text-center">🧾 Smart Dental Pharmacy</h3>
+    <p><strong>Date:</strong> <?= date('d M Y - H:i', strtotime($sale['sale_date'])) ?></p>
+    <table class="table table-bordered">
+      <thead><tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+      <tbody>
+        <!-- Loop for multiple products -->
+        <?php foreach ($sale_items as $item): ?>
+          <tr>
+            <td><?= htmlspecialchars($item['product_name']) ?></td>
+            <td><?= $item['quantity_sold'] ?></td>
+            <td><?= number_format($item['unit_price'], 2) ?></td>
+            <td><?= number_format($item['total'], 2) ?></td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+    <h5>Total: <?= number_format($total_amount, 2) ?> SLSH</h5>
   </div>
-</div>
 
-<div class="no-print  text-center mt-3">
-  <a href="dashboard.php" class="btn btn-secondary">⬅️ Back to Dashboard</a>
-</div>
+  <div class="text-center mt-3 no-print">
+    <button class="btn btn-primary" onclick="window.print()">🖨 Print</button>
+    <a href="dashboard.php" class="btn btn-secondary">⬅️ Back</a>
+  </div>
 </body>
 </html>
