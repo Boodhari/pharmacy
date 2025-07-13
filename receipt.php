@@ -52,7 +52,7 @@ while ($row = $result->fetch_assoc()) {
       background: white;
     }
     @media print {
-      button, a { display: none; }
+    body,  button, a { display: none; }
     }
   </style>
 </head>
