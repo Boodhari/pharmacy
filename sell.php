@@ -7,71 +7,67 @@ if (!isset($_SESSION['username'])) {
 
 include 'config/db.php';
 
+$products = $conn->query("SELECT * FROM products");
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product_ids = $_POST['product_id'];
     $quantities = $_POST['quantity'];
 
-    $sale_ids = [];
+    $transaction_id = uniqid("txn_");
 
     foreach ($product_ids as $index => $product_id) {
         $product_id = intval($product_id);
         $quantity = intval($quantities[$index]);
 
+        if ($quantity < 1) continue;
+
         $res = $conn->query("SELECT * FROM products WHERE id = $product_id");
         $product = $res->fetch_assoc();
 
-        if (!$product) {
-            die("❌ Product not found (ID: $product_id).");
-        }
-
-        if ($product['quantity'] < $quantity) {
-            die("❌ Not enough stock for {$product['name']}.");
+        if (!$product || $product['quantity'] < $quantity) {
+            continue; // Skip invalid or insufficient stock
         }
 
         $total = $quantity * $product['price'];
 
-        $stmt = $conn->prepare("INSERT INTO sales (product_id, quantity_sold, total) VALUES (?, ?, ?)");
-        $stmt->bind_param("iid", $product_id, $quantity, $total);
-
-        if (!$stmt->execute()) {
-            die("❌ Failed to insert sale: " . $stmt->error);
-        }
-
-        $sale_ids[] = $stmt->insert_id;
+        $stmt = $conn->prepare("INSERT INTO sales (transaction_id, product_id, quantity_sold, total) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("siid", $transaction_id, $product_id, $quantity, $total);
+        $stmt->execute();
 
         $conn->query("UPDATE products SET quantity = quantity - $quantity WHERE id = $product_id");
     }
 
-    $last_sale_id = end($sale_ids);
-    header("Location: receipt.php?sale_id=$last_sale_id");
+    header("Location: receipt.php?txn_id=$transaction_id");
     exit;
 }
-
-$products = $conn->query("SELECT * FROM products");
 ?>
 <?php include('includes/header.php'); ?>
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sell Product - Pharmacy POS</title>
+  <title>Sell Multiple Products - Pharmacy POS</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script>
-    function addProductRow() {
-      const row = document.querySelector('.product-row').cloneNode(true);
-      document.getElementById('products-list').appendChild(row);
+    function addRow() {
+      const container = document.getElementById('product-container');
+      const row = container.firstElementChild.cloneNode(true);
+      row.querySelectorAll('input').forEach(i => i.value = '');
+      container.appendChild(row);
     }
   </script>
 </head>
 <body class="bg-light">
 <div class="container py-5">
-  <h2>🛒 Sell Products</h2>
-  <form method="POST" class="mt-4" style="max-width: 600px;">
-    <div id="products-list">
-      <div class="product-row mb-3 row">
+  <h2>🛒 Sell Multiple Products</h2>
+  <form method="POST">
+    <div id="product-container">
+      <div class="row g-2 mb-3">
         <div class="col-md-8">
-          <label>Product</label>
           <select name="product_id[]" class="form-select" required>
-            <?php $products->data_seek(0); while ($p = $products->fetch_assoc()): ?>
+            <option value="">-- Select Product --</option>
+            <?php
+            $products->data_seek(0); // Reset pointer
+            while ($p = $products->fetch_assoc()): ?>
               <option value="<?= $p['id'] ?>">
                 <?= htmlspecialchars($p['name']) ?> (<?= $p['quantity'] ?> in stock)
               </option>
@@ -79,15 +75,15 @@ $products = $conn->query("SELECT * FROM products");
           </select>
         </div>
         <div class="col-md-4">
-          <label>Quantity</label>
-          <input type="number" name="quantity[]" class="form-control" min="1" required>
+          <input type="number" name="quantity[]" class="form-control" placeholder="Quantity" min="1" required>
         </div>
       </div>
     </div>
-    <button type="button" class="btn btn-sm btn-outline-primary mb-3" onclick="addProductRow()">➕ Add Another Product</button><br>
+    <button type="button" onclick="addRow()" class="btn btn-sm btn-secondary mb-3">➕ Add Another Product</button>
+    <br>
     <button class="btn btn-success">✅ Sell & Print Receipt</button>
+    <a href="dashboard.php" class="btn btn-secondary">⬅️ Back</a>
   </form>
-  <a href="dashboard.php" class="btn btn-secondary mt-3">⬅️ Back to Dashboard</a>
 </div>
 </body>
 </html>
