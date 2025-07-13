@@ -43,6 +43,7 @@ while ($row = $result->fetch_assoc()) {
   <title>Receipt - Pharmacy POS</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+
     .receipt-card {
       max-width: 600px;
       margin: 40px auto;
@@ -51,7 +52,12 @@ while ($row = $result->fetch_assoc()) {
       background: white;
     }
     @media print {
-      button, a { display: none; }
+      body * {
+      visibility: hidden;
+    }
+     .no-print {
+      display: none !important;
+    }
     }
   </style>
 </head>
@@ -89,12 +95,12 @@ while ($row = $result->fetch_assoc()) {
     </tfoot>
   </table>
 
-  <div class="text-center mt-4">
+  <div class="no-print  text-center mt-4">
     <button onclick="window.print()" class="btn btn-primary">🖨️ Print</button>
   </div>
 </div>
 
-<div class="text-center mt-3">
+<div class="no-print  text-center mt-3">
   <a href="dashboard.php" class="btn btn-secondary">⬅️ Back to Dashboard</a>
 </div>
 </body>
