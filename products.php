@@ -7,7 +7,7 @@ if (!isset($_SESSION['username'])) {
 
 include 'config/db.php';
 include('includes/header.php');
-$result = $conn->query("SELECT * FROM products");
+$result = $conn->query("SELECT * FROM products where quantity > 0");
 ?>
 
 <!DOCTYPE html>
