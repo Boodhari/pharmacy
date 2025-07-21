@@ -6,7 +6,7 @@ $search_date = $_GET['date'] ?? '';
 $search_phone = $_GET['phone'] ?? '';
 
 // Base query
-$query = "SELECT * FROM visitors WHERE 1=1";
+$query = "SELECT * FROM visitors WHERE 1=1 and clinic_id = " . intval($_SESSION['clinic_id']) . " ";
 $params = [];
 $types = "";
 

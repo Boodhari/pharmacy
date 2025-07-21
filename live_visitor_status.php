@@ -2,7 +2,7 @@
 include 'config/db.php';
 include('includes/header1.php');
 
-$result = $conn->query("SELECT * FROM visitors ORDER BY visit_date DESC");
+$result = $conn->query("SELECT * FROM visitors where clinic_id=" . intval($_SESSION['clinic_id'])" ORDER BY visit_date DESC");
 ?>
 
 <!DOCTYPE html>

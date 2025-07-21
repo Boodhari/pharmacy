@@ -1,13 +1,34 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+include __DIR__ . '/../config/db.php';
+include __DIR__ .'/../auth_check.php';
+$clinic_name = 'Pharmacy POS'; // Default name
+
+if (isset($_SESSION['clinic_id'])) {
+    $stmt = $conn->prepare("SELECT name FROM clinics WHERE id = ?");
+    $stmt->bind_param("i", $_SESSION['clinic_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        $clinic_name = $row['name'];
+    }
+    $stmt->close();
+} elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin') {
+    $clinic_name = "Super Admin Panel";
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Pharmacy POS</title>
+  <title><?= htmlspecialchars($clinic_name) ?></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
-  <a class="navbar-brand" href="dashboard.php">Smart Dental Pharmacy</a>
+  <a class="navbar-brand" href="dashboard.php"><?= htmlspecialchars($clinic_name) ?></a>
   <div class="ms-auto">
     <a class="btn btn-light" href="logout.php">Logout</a>
   </div>

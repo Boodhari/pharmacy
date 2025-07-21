@@ -1,13 +1,20 @@
 <?php
 session_start();
-if (!isset($_SESSION['username'])) {
+if (!isset($_SESSION['username']) || !isset($_SESSION['clinic_id'])) {
     header("Location: login.php");
     exit;
 }
 
 include 'config/db.php';
 include('includes/header.php');
-$result = $conn->query("SELECT * FROM products where quantity > 0");
+include 'check_clinic_status.php';
+
+// Fetch products only for the current clinic
+$clinic_id = $_SESSION['clinic_id'];
+$result = $conn->prepare("SELECT * FROM products WHERE quantity > 0 AND clinic_id = ?");
+$result->bind_param("i", $clinic_id);
+$result->execute();
+$products = $result->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -20,20 +27,31 @@ $result = $conn->query("SELECT * FROM products where quantity > 0");
 <div class="container mt-5">
   <h2>Products</h2>
   <a href="add_product.php" class="btn btn-success mb-3">Add New Product</a>
+
   <table class="table table-bordered">
     <thead>
-      <tr><th>Name</th><th>Price</th><th>Quantity</th></tr>
+      <tr>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Actions</th>
+      </tr>
     </thead>
     <tbody>
-      <?php while($row = $result->fetch_assoc()): ?>
+      <?php while ($row = $products->fetch_assoc()): ?>
         <tr>
           <td><?= htmlspecialchars($row['name']) ?></td>
-          <td>SLSH<?= number_format($row['price'], 2) ?></td>
+          <td>$<?= number_format($row['price'], 2) ?></td>
           <td><?= $row['quantity'] ?></td>
+          <td>
+            <a href="edit_product.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
+            <a href="delete_product.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure to delete this product?')">Delete</a>
+          </td>
         </tr>
       <?php endwhile; ?>
     </tbody>
   </table>
+
   <a href="dashboard.php">Back to Dashboard</a>
 </div>
 </body>

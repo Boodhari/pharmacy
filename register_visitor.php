@@ -2,15 +2,15 @@
 include 'config/db.php';
 
 $message = '';
-
+$clinic_id = $_SESSION['clinic_id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $full_name = trim($_POST['full_name']);
     $phone = trim($_POST['phone']);
     $purpose = trim($_POST['purpose']);
     $paid = trim($_POST['paid']);
 
-    $stmt = $conn->prepare("INSERT INTO visitors (full_name, phone, purpose,paid) VALUES (?, ?, ?,?)");
-    $stmt->bind_param("ssss", $full_name, $phone, $purpose,$paid);
+    $stmt = $conn->prepare("INSERT INTO visitors (clinic_id, full_name, phone, purpose,paid) VALUES (?, ?, ?, ?,?)");
+    $stmt->bind_param("issss",$clinic_id, $full_name, $phone, $purpose,$paid);
 
     if ($stmt->execute()) {
         $message = "✅ Visitor registered successfully.";

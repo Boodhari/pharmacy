@@ -4,7 +4,7 @@ include('includes/header.php');
 $success = false;
 
 // Fetch visitors for dropdown
-$visitors = $conn->query("SELECT id, full_name, purpose FROM visitors ORDER BY visit_date DESC");
+$visitors = $conn->query("SELECT id, full_name, purpose FROM visitors WHERE clinic_id = " . intval($_SESSION['clinic_id']) . " ORDER BY visit_date DESC");
 
 // Fetch distinct services from history_taking
 $services = $conn->query("SELECT DISTINCT services FROM history_taking ORDER BY date_taken DESC");
@@ -23,8 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $patient_name = $visitor['full_name'];
 
     // Insert voucher
-    $insert = $conn->prepare("INSERT INTO vouchers (visitor_id, patient_name, service, amount_paid) VALUES (?, ?, ?, ?)");
-    $insert->bind_param("issd", $visitor_id, $patient_name, $service, $amount);
+    $clinic_id = $_SESSION['clinic_id'];
+    $insert = $conn->prepare("INSERT INTO vouchers (clinic_id,visitor_id, patient_name, service, amount_paid) VALUES (?, ?, ?, ?, ?)");
+    $insert->bind_param("iissd",$clinic_id, $visitor_id, $patient_name, $service, $amount);
     $insert->execute();
     $voucher_id = $insert->insert_id;
     $success = true;

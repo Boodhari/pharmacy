@@ -1,6 +1,8 @@
 <?php
+session_start();
 include 'config/db.php';
 include('includes/header1.php');
+$clinic_id = $_SESSION['clinic_id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $patient = $_POST['patient_name'];
     $sex=$_POST['patient_sex'];
@@ -8,8 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $doctor = $_POST['doctor_name'];
     $medications = $_POST['medications'];
 
-    $stmt = $conn->prepare("INSERT INTO prescriptions (patient_name,patient_sex,patient_weight, doctor_name, medications) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssss", $patient, $sex, $weight, $doctor, $medications);
+    $stmt = $conn->prepare("INSERT INTO prescriptions (clinic_id, patient_name,patient_sex,patient_weight, doctor_name, medications) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("isssss",$clinic_id, $patient, $sex, $weight, $doctor, $medications);
     $stmt->execute();
     $success = true;
 }

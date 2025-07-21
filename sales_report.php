@@ -15,7 +15,7 @@ $query = "
 SELECT s.*, p.name, p.price 
 FROM sales s 
 JOIN products p ON s.product_id = p.id 
-WHERE DATE(s.sale_date) = '$selected_date'
+WHERE DATE(s.sale_date) = '$selected_date' and s.clinic_id = " . intval($_SESSION['clinic_id']) . "
 ORDER BY s.sale_date DESC";
 
 $result = $conn->query($query);

@@ -3,7 +3,7 @@ include 'config/db.php';
 include('includes/header.php');
 $search_name = $_GET['name'] ?? '';
 
-$query = "SELECT * FROM vouchers WHERE 1";
+$query = "SELECT * FROM vouchers WHERE 1 and clinic_id = " . intval($_SESSION['clinic_id']) . " ";
 $params = [];
 $types = "";
 

@@ -2,7 +2,7 @@
 include 'config/db.php';
 include('includes/header1.php');
 $success = false;
-
+$clinic_id = $_SESSION['clinic_id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $patient = $_POST['patient_name'];
     $doctor = $_POST['doctor_name'];
@@ -10,8 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $services = $_POST['services'];
     $price = $_POST['total_price'];
 
-    $stmt = $conn->prepare("INSERT INTO history_taking (patient_name, doctor_name, symptoms, services, total_price) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssd", $patient, $doctor, $symptoms, $services, $price);
+    $stmt = $conn->prepare("INSERT INTO history_taking (clinic_id,patient_name, doctor_name, symptoms, services, total_price) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("issssd",$clinic_id $patient, $doctor, $symptoms, $services, $price);
     $stmt->execute();
     $success = true;
 }

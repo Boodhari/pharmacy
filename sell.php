@@ -1,18 +1,21 @@
 <?php
 session_start();
-if (!isset($_SESSION['username'])) {
+if (!isset($_SESSION['username']) || !isset($_SESSION['clinic_id'])) {
     header("Location: login.php");
     exit;
 }
 
 include 'config/db.php';
+$clinic_id = $_SESSION['clinic_id'];
+include 'check_clinic_status.php';
 
 // Fetch only in-stock products
-$products = $conn->query("SELECT * FROM products WHERE quantity > 0");
+$products = $conn->query("SELECT * FROM products WHERE quantity > 0 and clinic_id = " . intval($_SESSION['clinic_id'])"");
 $has_products = $products->num_rows > 0;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product_ids = $_POST['product_id'];
+    
     $quantities = $_POST['quantity'];
     $payment_type = $_POST['payment_type'];
 
@@ -33,8 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $total = $quantity * $product['price'];
 
-        $stmt = $conn->prepare("INSERT INTO sales (transaction_id, product_id, quantity_sold, total, payment_type) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("siids", $transaction_id, $product_id, $quantity, $total, $payment_type);
+        $stmt = $conn->prepare("INSERT INTO sales (clinic_id,transaction_id, product_id, quantity_sold, total, payment_type) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("isiids",$clinic_id, $transaction_id, $product_id, $quantity, $total, $payment_type);
         $stmt->execute();
 
         $conn->query("UPDATE products SET quantity = quantity - $quantity WHERE id = $product_id");

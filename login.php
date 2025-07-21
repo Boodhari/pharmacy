@@ -4,30 +4,47 @@ include 'config/db.php';
 
 $error = '';
 
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = trim($_POST['username']);
     $password = md5($_POST['password']);
 
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? AND password = ?");
+    // Join users with clinics to check clinic status
+    $stmt = $conn->prepare("
+        SELECT u.*, c.status AS clinic_status 
+        FROM users u 
+        LEFT JOIN clinics c ON u.clinic_id = c.id 
+        WHERE u.username = ? AND u.password = ?
+    ");
     $stmt->bind_param("ss", $username, $password);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($row = $result->fetch_assoc()) {
-        $_SESSION['username'] = $row['username'];
-        $_SESSION['role'] = $row['role'];
-
-        // Redirect based on role
-        if ($row['role'] == 'doctor') {
-            header("Location: drdashboard.php");
+        // Block login if user is not super_admin and clinic is inactive or missing
+        if ($row['role'] !== 'super_admin' && 
+            ($row['clinic_id'] === null || $row['clinic_status'] !== 'active')) {
+            $error = "Access Denied: Your clinic is deactivated. Please contact admin.";
         } else {
-            header("Location: dashboard.php");
+            $_SESSION['username'] = $row['username'];
+            $_SESSION['role'] = $row['role'];
+            $_SESSION['clinic_id'] = $row['clinic_id'];
+
+            // Redirect based on role
+            if ($row['role'] == 'doctor') {
+                header("Location: drdashboard.php");
+            } elseif ($row['role'] == 'super_admin') {
+                header("Location: admin_dashboard.php");
+            } else {
+                header("Location: dashboard.php");
+            }
+            exit;
         }
-        exit;
     } else {
         $error = "Invalid username or password.";
     }
 }
+ 
 ?>
 
 <!DOCTYPE html>
@@ -38,9 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body, html {
-      height: 100%;
-    }
+    body, html { height: 100%; }
   </style>
 </head>
 <body class="d-flex align-items-center justify-content-center bg-light" style="min-height: 100vh;">
@@ -52,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <?php endif; ?>
 
     <form method="POST">
+    
       <div class="mb-3">
         <label class="form-label">Username</label>
         <input type="text" name="username" class="form-control" required>

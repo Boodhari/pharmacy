@@ -1,7 +1,7 @@
 <?php
 include 'config/db.php';
 include('includes/header.php');
-$prescriptions = $conn->query("SELECT * FROM prescriptions ORDER BY date_prescribed DESC");
+$prescriptions = $conn->query("SELECT * FROM prescriptions where clinic_id= " . intval($_SESSION['clinic_id']) ." ORDER BY date_prescribed DESC");
 ?>
 
 <!DOCTYPE html>

@@ -12,7 +12,7 @@ if (isset($_GET['id']) && isset($_GET['status'])) {
 }
 
 // Fetch visitors
-$result = $conn->query("SELECT * FROM visitors ORDER BY visit_date DESC");
+$result = $conn->query("SELECT * FROM visitors  where clinic_id= " . intval($_SESSION['clinic_id']) ." ORDER BY visit_date DESC");
 ?>
 
 <!DOCTYPE html>

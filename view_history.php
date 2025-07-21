@@ -1,7 +1,7 @@
 <?php
 include 'config/db.php';
 include('includes/header.php');
-$result = $conn->query("SELECT * FROM history_taking ORDER BY date_taken DESC");
+$result = $conn->query("SELECT * FROM history_taking where clinic_id =" . intval($_SESSION['clinic_id']) ."  ORDER BY date_taken DESC");
 ?>
 
 <!DOCTYPE html>

@@ -7,7 +7,7 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'doctor') {
 
 include 'config/db.php';
 include('includes/header1.php');
-
+include 'check_clinic_status.php';
 // Error helper
 function queryOrDie($conn, $query) {
     $result = $conn->query($query);
