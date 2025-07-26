@@ -4,7 +4,7 @@ include 'config/db.php';
 include('includes/header1.php');
 $success = false;
 $clinic_id = $_SESSION['clinic_id'];
-$visitors = $conn->query("SELECT id, full_name FROM visitors WHERE clinic_id=" . intval($_SESSION['clinic_id']) . " AND visit_date = CURDATE() ORDER BY visit_date DESC");
+$visitors = $conn->query("SELECT id, full_name FROM visitors WHERE clinic_id=" . intval($_SESSION['clinic_id']) . " ORDER BY visit_date DESC");
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $patient = $_POST['patient_name'];
     $doctor = $_POST['doctor_name'];
@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $price = $_POST['total_price'];
 
     $stmt = $conn->prepare("INSERT INTO history_taking (clinic_id,patient_name, doctor_name, symptoms, services, total_price) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("issssd",$clinic_id ,$patient, $doctor, $symptoms, $services, $price);
+    $stmt->bind_param("issssd",$clinic_id, $patient, $doctor, $symptoms, $services, $price);
     $stmt->execute();
     $success = true;
 }
@@ -35,12 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <form method="POST" class="row g-3">
     <div class="col-md-6">
       <label>Patient Name</label>
-       <select name="patient_name" class="form-select" required>
-        <option value="">-- Select Patient --</option>
-        <?php while ($v = $visitors_result->fetch_assoc()): ?>
-          <option value="<?= htmlspecialchars($v['full_name']) ?>"><?= htmlspecialchars($v['full_name']) ?></option>
-        <?php endwhile; ?>
-        </select>
+      <input type="text" name="patient_name" class="form-control" required>
     </div>
     <div class="col-md-6">
       <label>Doctor Name</label>
