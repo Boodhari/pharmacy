@@ -35,7 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <form method="POST" class="row g-3">
     <div class="col-md-6">
       <label>Patient Name</label>
-      <input type="text" name="patient_name" class="form-control" required>
+       <select name="patient_name" class="form-select" required>
+        <option value="">-- Select Patient --</option>
+        <?php while ($v = $visitors_result->fetch_assoc()): ?>
+          <option value="<?= htmlspecialchars($v['full_name']) ?>"><?= htmlspecialchars($v['full_name']) ?></option>
+        <?php endwhile; ?>
+        </select>
     </div>
     <div class="col-md-6">
       <label>Doctor Name</label>
