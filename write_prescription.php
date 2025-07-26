@@ -5,7 +5,7 @@ include('includes/header1.php');
 $clinic_id = $_SESSION['clinic_id'];
 $success = false;
 // Fetch patient names from the visitors table
-$visitors = $conn->query("SELECT id, full_name FROM visitors ORDER BY visit_date DESC");
+$visitors = $conn->query("SELECT id, full_name FROM visitors WHERE clinic_id=" . intval($_SESSION['clinic_id']) . " AND visitor_date = CURDATE() ORDER BY visit_date DESC");
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $patient = $_POST['patient_name'];
     $sex=$_POST['patient_sex'];
