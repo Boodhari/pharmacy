@@ -3,6 +3,9 @@ session_start();
 include 'config/db.php';
 include('includes/header1.php');
 $clinic_id = $_SESSION['clinic_id'];
+$success = false;
+// Fetch patient names from the visitors table
+$visitors = $conn->query("SELECT id, full_name FROM visitors ORDER BY visit_date DESC");
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $patient = $_POST['patient_name'];
     $sex=$_POST['patient_sex'];
@@ -33,7 +36,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <form method="POST" class="row g-3">
     <div class="col-md-3">
       <label>Patient Name</label>
-      <input type="text" name="patient_name" class="form-control" required>
+         <select name="patient_name" class="form-select" required>
+        <option value="">-- Select Patient --</option>
+        <?php while ($row = $visitors->fetch_assoc()): ?>
+          <option value="<?= htmlspecialchars($row['full_name']) ?>"><?= htmlspecialchars($row['full_name']) ?></option>
+        <?php endwhile; ?>
+      </select>
     </div>
     <div class="col-md-3">
       <label>Patient Sex</label>
