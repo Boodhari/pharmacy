@@ -28,7 +28,7 @@ if (isset($_SESSION['clinic_id'])) {
 </head>
 <body class="bg-light">
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
-  <a class="navbar-brand" href="dashboard.php"><?= htmlspecialchars($clinic_name) ?></a>
+  <a class="navbar-brand" href="drdashboard.php"><?= htmlspecialchars($clinic_name) ?></a>
   <div class="ms-auto">
     <a class="btn btn-light" href="logout.php">Logout</a>
   </div>
