@@ -4,7 +4,7 @@ include 'config/db.php';
 include('includes/header1.php');
 $success = false;
 $clinic_id = $_SESSION['clinic_id'];
-$visitors = $conn->query("SELECT id, full_name FROM visitors WHERE clinic_id=" . intval($_SESSION['clinic_id']) . " ORDER BY visit_date DESC");
+$visitors_result= $conn->query("SELECT id, full_name FROM visitors WHERE clinic_id=" . intval($_SESSION['clinic_id']) . " ORDER BY visit_date DESC");
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $patient = $_POST['patient_name'];
     $doctor = $_POST['doctor_name'];
@@ -23,44 +23,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html>
 <head>
   <title>Take Patient History</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="container py-4">
   <h2 class="mb-3">🩺 Take Patient History</h2>
 
   <?php if ($success): ?>
-    <div class="alert alert-success">Patient history saved successfully.</div>
+    <div class="alert alert-success">✅ Patient history saved successfully.</div>
   <?php endif; ?>
 
   <form method="POST" class="row g-3">
     <div class="col-md-6">
-      <label>Patient Name</label>
-       <select name="patient_name" class="form-select" required>
+      <label class="form-label">Patient Name</label>
+      <select name="patient_name" class="form-select" required>
         <option value="">-- Select Patient --</option>
         <?php while ($v = $visitors_result->fetch_assoc()): ?>
           <option value="<?= htmlspecialchars($v['full_name']) ?>"><?= htmlspecialchars($v['full_name']) ?></option>
         <?php endwhile; ?>
-        </select>
+      </select>
     </div>
     <div class="col-md-6">
-      <label>Doctor Name</label>
+      <label class="form-label">Doctor Name</label>
       <input type="text" name="doctor_name" class="form-control" required>
     </div>
     <div class="col-12">
-      <label>Symptoms / Complaints</label>
+      <label class="form-label">Symptoms / Complaints</label>
       <textarea name="symptoms" class="form-control" rows="3" required></textarea>
     </div>
     <div class="col-12">
-      <label>Services to Provide</label>
+      <label class="form-label">Services to Provide</label>
       <textarea name="services" class="form-control" rows="2" required></textarea>
     </div>
     <div class="col-md-4">
-      <label>Total Price (SLSH)</label>
+      <label class="form-label">Total Price (USD)</label>
       <input type="number" step="0.01" name="total_price" class="form-control" required>
     </div>
     <div class="col-12">
-      <button type="submit" class="btn btn-primary">Save History</button>
-      <a href="drdashboard.php" class="btn btn-secondary">Back</a>
+      <button type="submit" class="btn btn-primary">💾 Save History</button>
+      <a href="drdashboard.php" class="btn btn-secondary">⬅️ Back</a>
     </div>
   </form>
 </body>
