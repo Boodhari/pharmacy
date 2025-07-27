@@ -20,7 +20,7 @@ function queryOrDie($conn, $query) {
 $today = date('Y-m-d');
 // Total unique patients
 
-$patients_result = queryOrDie($conn, "SELECT COUNT(DISTINCT patient_name) AS total_patients FROM prescriptions where clinic_id = " . intval($_SESSION['clinic_id']) . " AND DATE(visit_date) = '$today'");
+$patients_result = queryOrDie($conn, "SELECT COUNT(DISTINCT patient_name) AS total_patients FROM prescriptions WHERE clinic_id = " . intval($_SESSION['clinic_id']) . " AND DATE(date_prescribed) = '$today'");
 $total_patients = $patients_result->fetch_assoc()['total_patients'] ?? 0;
 
 // Prescriptions today
