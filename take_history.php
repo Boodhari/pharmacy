@@ -4,7 +4,8 @@ include 'config/db.php';
 include('includes/header1.php');
 $success = false;
 $clinic_id = $_SESSION['clinic_id'];
-$visitors_result= $conn->query("SELECT id, full_name FROM visitors WHERE clinic_id=" . intval($_SESSION['clinic_id']) . " ORDER BY visit_date DESC");
+$today = date('Y-m-d');
+$visitors_result= $conn->query("SELECT id, full_name FROM visitors WHERE clinic_id=" . intval($_SESSION['clinic_id']) . " AND visit_date='$today' ORDER BY visit_date DESC");
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $patient = $_POST['patient_name'];
     $doctor = $_POST['doctor_name'];
