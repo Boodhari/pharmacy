@@ -41,7 +41,7 @@ if (!empty($_GET['patient']) || !empty($_GET['date'])) {
 }
 
 // Recent patients
-$recent_result = queryOrDie($conn, "SELECT patient_name, doctor_name, date_prescribed FROM prescriptions where clinic_id = " . intval($_SESSION['clinic_id']) . " AND $filter_sql ORDER BY date_prescribed DESC LIMIT 10");
+$recent_result = queryOrDie($conn, "SELECT patient_name, doctor_name, date_prescribed FROM prescriptions $filter_sql ORDER BY date_prescribed DESC LIMIT 10");
 ?>
 
 <!DOCTYPE html>
