@@ -16,13 +16,15 @@ function queryOrDie($conn, $query) {
     }
     return $result;
 }
-
+//get today's date
+$today = date('Y-m-d');
 // Total unique patients
-$patients_result = queryOrDie($conn, "SELECT COUNT(DISTINCT patient_name) AS total_patients FROM prescriptions where clinic_id = " . intval($_SESSION['clinic_id']) . "");
+
+$patients_result = queryOrDie($conn, "SELECT COUNT(DISTINCT patient_name) AS total_patients FROM prescriptions where clinic_id = " . intval($_SESSION['clinic_id']) . " AND DATE(visit_date) = '$today'");
 $total_patients = $patients_result->fetch_assoc()['total_patients'] ?? 0;
 
 // Prescriptions today
-$today = date('Y-m-d');
+
 $today_prescriptions = queryOrDie($conn, "SELECT COUNT(*) AS today_total FROM prescriptions WHERE clinic_id = " . intval($_SESSION['clinic_id']) . " AND  DATE(date_prescribed) = '$today'");
 $prescriptions_today = $today_prescriptions->fetch_assoc()['today_total'] ?? 0;
 
