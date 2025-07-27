@@ -8,8 +8,8 @@ if (!isset($_SESSION['username'])) {
 include 'config/db.php';
 include('includes/header1.php');
 $clinic_id = $_SESSION['clinic_id'];
-$today = date('Y-m-d');
-$visitors = $conn->query("SELECT id, full_name, phone FROM visitors where clinic_id= ". intval($_SESSION['clinic_id']) . " AND visit_date='$today' ORDER BY visit_date DESC");
+
+$visitors = $conn->query("SELECT id, full_name, phone FROM visitors where clinic_id= ". intval($_SESSION['clinic_id']) . " ORDER BY visit_date DESC");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $visitor_id = $_POST['visitor_id'];
