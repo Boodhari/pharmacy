@@ -3,10 +3,10 @@ session_start();
 include 'config/db.php';
 include('includes/header1.php');
 $clinic_id = $_SESSION['clinic_id'];
-$today = date('Y-m-d');
+
 $success = false;
 // Fetch patient names from the visitors table
-$visitors = $conn->query("SELECT id, full_name FROM visitors WHERE clinic_id=" . intval($_SESSION['clinic_id']) . " AND visit_date='$today' ORDER BY visit_date DESC");
+$visitors = $conn->query("SELECT id, full_name FROM visitors WHERE clinic_id=" . intval($_SESSION['clinic_id']) . "  ORDER BY visit_date DESC");
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $patient = $_POST['patient_name'];
     $sex=$_POST['patient_sex'];
