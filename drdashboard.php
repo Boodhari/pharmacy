@@ -18,12 +18,12 @@ function queryOrDie($conn, $query) {
 }
 
 // Total unique patients
-$patients_result = queryOrDie($conn, "SELECT COUNT(DISTINCT patient_name) AS total_patients FROM prescriptions");
+$patients_result = queryOrDie($conn, "SELECT COUNT(DISTINCT patient_name) AS total_patients FROM prescriptions where clinic_id = " . intval($_SESSION['clinic_id']) . "");
 $total_patients = $patients_result->fetch_assoc()['total_patients'] ?? 0;
 
 // Prescriptions today
 $today = date('Y-m-d');
-$today_prescriptions = queryOrDie($conn, "SELECT COUNT(*) AS today_total FROM prescriptions WHERE DATE(date_prescribed) = '$today'");
+$today_prescriptions = queryOrDie($conn, "SELECT COUNT(*) AS today_total FROM prescriptions WHERE clinic_id = " . intval($_SESSION['clinic_id']) . " AND  DATE(date_prescribed) = '$today'");
 $prescriptions_today = $today_prescriptions->fetch_assoc()['today_total'] ?? 0;
 
 // Filter logic
@@ -41,7 +41,7 @@ if (!empty($_GET['patient']) || !empty($_GET['date'])) {
 }
 
 // Recent patients
-$recent_result = queryOrDie($conn, "SELECT patient_name, doctor_name, date_prescribed FROM prescriptions $filter_sql ORDER BY date_prescribed DESC LIMIT 10");
+$recent_result = queryOrDie($conn, "SELECT patient_name, doctor_name, date_prescribed FROM prescriptions where clinic_id = " . intval($_SESSION['clinic_id']) . " AND $filter_sql ORDER BY date_prescribed DESC LIMIT 10");
 ?>
 
 <!DOCTYPE html>
