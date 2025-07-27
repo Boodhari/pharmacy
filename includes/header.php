@@ -5,14 +5,15 @@ if (session_status() === PHP_SESSION_NONE) {
 include __DIR__ . '/../config/db.php';
 include __DIR__ .'/../auth_check.php';
 $clinic_name = 'Pharmacy POS'; // Default name
-
+$clinic_logo = null;
 if (isset($_SESSION['clinic_id'])) {
-    $stmt = $conn->prepare("SELECT name FROM clinics WHERE id = ?");
+    $stmt = $conn->prepare("SELECT name , logo FROM clinics WHERE id = ?");
     $stmt->bind_param("i", $_SESSION['clinic_id']);
     $stmt->execute();
     $result = $stmt->get_result();
     if ($row = $result->fetch_assoc()) {
         $clinic_name = $row['name'];
+        $clinic_logo = $row['logo'] ?? null;
     }
     $stmt->close();
 } elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin') {
@@ -28,7 +29,12 @@ if (isset($_SESSION['clinic_id'])) {
 </head>
 <body class="bg-light">
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
-  <a class="navbar-brand" href="dashboard.php"><?= htmlspecialchars($clinic_name) ?></a>
+  <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
+  <?php if ($clinic_logo): ?>
+    <img src="uploads/logos/<?= htmlspecialchars($clinic_logo) ?>" alt="Logo" height="40" class="me-2">
+  <?php endif; ?>
+  <?= htmlspecialchars($clinic_name) ?>
+</a>
   <div class="ms-auto">
     <a class="btn btn-light" href="logout.php">Logout</a>
   </div>

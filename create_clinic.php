@@ -8,7 +8,16 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'super_admin') {
 include 'config/db.php';
 $success = '';
 $error = '';
+$logo_filename = null;
 
+if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+    $upload_dir = 'uploads/logos/';
+    if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+
+    $ext = pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION);
+    $logo_filename = uniqid('clinic_', true) . '.' . $ext;
+    move_uploaded_file($_FILES['logo']['tmp_name'], $upload_dir . $logo_filename);
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name']);
     $email = trim($_POST['email']);
@@ -22,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $admin_password = md5($_POST['admin_password']); // You can improve this with password_hash
 
     // Insert into clinics table
-    $stmt = $conn->prepare("INSERT INTO clinics (name, email, phone, address, subscription_start, subscription_end, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssssss", $name, $email, $phone, $address, $start, $end, $status);
+    $stmt = $conn->prepare("INSERT INTO clinics (name, email, phone, address, subscription_start, subscription_end, status, logo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssssssss", $name, $email, $phone, $address, $start, $end, $status , $logo_filename);
 
     if ($stmt->execute()) {
         $clinic_id = $stmt->insert_id;
@@ -58,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="alert alert-danger"><?= $error ?></div>
   <?php endif; ?>
 
-  <form method="POST" class="row g-3">
+  <form method="POST" enctype="multipart/form-data" class="row g-3">
     <div class="col-md-6">
       <label>Clinic Name</label>
       <input type="text" name="name" class="form-control" required>
@@ -75,6 +84,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <label>Address</label>
       <input type="text" name="address" class="form-control">
     </div>
+      <div class="col-md-6">
+    <label>Clinic Logo</label>
+    <input type="file" name="logo" class="form-control" accept="image/*">
+  </div>
     <div class="col-md-6">
       <label>Subscription Start</label>
       <input type="date" name="subscription_start" class="form-control" required>
