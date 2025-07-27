@@ -56,7 +56,7 @@ $recent_result = queryOrDie($conn, "SELECT patient_name, doctor_name, date_presc
 <div class="container py-5">
   <h2 class="mb-4">Welcome Dr. <?= htmlspecialchars($_SESSION['username']) ?> 👨‍⚕️</h2>
 
-  <div class="row g-4 mb-4">
+ <div class="row g-4 mb-4">
     <div class="col-md-4">
       <div class="card shadow-sm border-0 text-white bg-info">
         <div class="card-body">
@@ -146,6 +146,28 @@ $recent_result = queryOrDie($conn, "SELECT patient_name, doctor_name, date_presc
           <a href="voucher_report.php" class="btn btn-outline-warning w-100">All Vouchers</a>
         </div>
       </div>
+    </div>
+      <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-receipt-cutoff display-4 text-danger mb-3"></i>
+          <h5 class="card-title">Apointments</h5>
+          <p class="card-text">Track Apointment.</p>
+          <a href="appointments.php" class="btn btn-outline-warning w-100">Apointment</a>
+        </div>
+</div>
+      </div>
+      
+      <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-receipt-cutoff display-4 text-danger mb-3"></i>
+          <h5 class="card-title"> Send Apointments</h5>
+          <p class="card-text">Send Apointment.</p>
+          <a href="send_appointment_reminders.php" class="btn btn-outline-warning w-100">Send Apointment</a>
+        </div>
+      </div>
+    </div>
     </div>
   </div>
 
