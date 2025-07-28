@@ -141,6 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <select name="status" class="form-control">
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
+            </select>
         </div>
         <hr>
     <h5>🔐 Clinic Doctor user</h5>
