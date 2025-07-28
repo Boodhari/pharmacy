@@ -7,7 +7,22 @@ if (!isset($_SESSION['username'])) {
 }
 
 include 'config/db.php';
-
+include 'auth_check.php';
+$clinic_name = 'Clinic Management System'; // Default name
+$clinic_logo = null;
+if (isset($_SESSION['clinic_id'])) {
+    $stmt = $conn->prepare("SELECT name , logo FROM clinics WHERE id = ?");
+    $stmt->bind_param("i", $_SESSION['clinic_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        $clinic_name = $row['name'];
+        $clinic_logo = $row['logo'] ?? null;
+    }
+    $stmt->close();
+} elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin') {
+    $clinic_name = "Super Admin Panel";
+}
 // Get transaction ID from URL
 $txn_id = $_GET['txn_id'] ?? '';
 if (empty($txn_id)) {
@@ -68,7 +83,7 @@ while ($row = $result->fetch_assoc()) {
 </head>
 <body class="bg-light">
 <div class="receipt-card">
-  <h4 class="text-center mb-4">🧾 Smart Dental Pharmacy Receipt</h4>
+  <h4 class="text-center mb-4">🧾 <?= htmlspecialchars($clinic_name) ?></h4>
 
   <table class="table table-bordered">
     <thead>

@@ -132,10 +132,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <input type="date" name="subscription_start" class="form-control" required>
     </div>
     <div class="col-md-6">
+        
       <label>Subscription End</label>
       <input type="date" name="subscription_end" class="form-control" required>
     </div>
     <div class="col-md-6">
+        </div>
+        <hr>
     <h5>🔐 Clinic Doctor user</h5>
     <div class="col-md-6">
       <label>User Role</label>
