@@ -59,11 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $to = "AbadirHassan10@gmail.com"; // Replace with your real admin email
         $subject = "✅ New Clinic Registered: $name";
         $message = "
-        A new clinic has been registered.
+        A new clinic has been registered please Activate.
 
         Clinic Name: $name
         Phone: $phone
         Address: $address
+        Email: $email
 
         Doctor Username: $doctor_username
         Pharmacy Username: $pharmacy_username
@@ -165,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="col-md-6">
         <label>Status</label>
         <select name="status" class="form-control">
-            <option value="active">Active</option>
+            <!-- //<option value="active">Active</option> -->
             <option value="inactive">Inactive</option>
             </select>
         </div>
