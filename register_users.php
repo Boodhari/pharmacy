@@ -54,11 +54,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt3->bind_param("sssi", $pharmacy_username, $pharmacy_password, $pharmacy_role, $clinic_id);
         $pharmacy_result = $stmt3->execute();
 
-        if ($doctor_result && $pharmacy_result) {
-            //$success = "✅ Clinic and both users created successfully!";
-             header("Location: login.php");
-              exit;
-        } else {
+      if ($doctor_result && $pharmacy_result) {
+        // ✅ Send Email Notification
+        $to = "AbadirHassan10@gmail.com"; // Replace with your real admin email
+        $subject = "✅ New Clinic Registered: $name";
+        $message = "
+        A new clinic has been registered.
+
+        Clinic Name: $name
+        Phone: $phone
+        Address: $address
+
+        Doctor Username: $doctor_username
+        Pharmacy Username: $pharmacy_username
+        ";
+        $headers = "From: noreply@yourdomain.com";
+        mail($to, $subject, $message, $headers); // You can improve this using PHPMailer
+
+        // ✅ WhatsApp Notification using CallMeBot
+        // $whatsappNumber = "2526xxxxxxxx"; // Your full WhatsApp number (include country code)
+        // $apikey = "YOUR_API_KEY"; // Get from https://www.callmebot.com/
+        // $text = urlencode("✅ New Clinic: $name\n📱 $phone\n👨‍⚕️ $doctor_username\n💊 $pharmacy_username");
+        // $url = "https://api.callmebot.com/whatsapp.php?phone=$whatsappNumber&text=$text&apikey=$apikey";
+        // file_get_contents($url); // Send the message
+
+        // ✅ Redirect
+        header("Location: login.php");
+        exit;
+    }
+         else {
             $error = "❌ Failed to create users: " . $stmt2->error . " " . $stmt3->error;
         }
     } else {
