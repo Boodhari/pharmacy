@@ -78,6 +78,7 @@ $result = $conn->query("SELECT * FROM clinics ORDER BY id DESC");
             <a href="toggle_clinic.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning">
               <?= $row['status'] == 'active' ? 'Deactivate' : 'Activate' ?>
             </a>
+            <a href="delete_clinics.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure to delete this user?')">Delete</a>
           </td>
         </tr>
       <?php endwhile; ?>
