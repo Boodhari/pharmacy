@@ -10,7 +10,7 @@ $clinic_id = $_SESSION['clinic_id'];
 include 'check_clinic_status.php';
 
 // Fetch only in-stock products
-$products = $conn->query("SELECT * FROM products WHERE quantity > 0 and clinic_id = " . intval($_SESSION['clinic_id'])"");
+$products = $conn->query("SELECT * FROM products WHERE quantity > 0 and clinic_id = " . intval($_SESSION['clinic_id']) ."");
 $has_products = $products->num_rows > 0;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
