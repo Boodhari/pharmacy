@@ -135,15 +135,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <hr class="my-3">
-
-    <h5>🔐 Clinic Admin Info</h5>
+ <h4>Create 2 Users for your system one for Pharmacy and one for Doctor</h4>
+    <h5>🔐 Clinic Doctor user</h5>
     <div class="col-md-6">
       <label>User Role</label>
       <select name="role" class="form-control" required>
-        <option value="">-- Choose Role --</option>
-        <option value="pharmacy">Pharmacy</option>
+        <option value="">-- Choose Doctor Role --</option>
+        
         <option value="doctor">Doctor</option>
-        <option value="clinic_admin">Clinic Admin</option>
+        
       </select>
     </div>
 
@@ -156,6 +156,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <label>Password</label>
       <input type="password" name="password" class="form-control" required>
     </div>
+    <hr>
+    <h5 class="mt-4">🔐 Clinic Pharmacy user</h5>
+     
+    <div class="col-md-6">
+      <label>User Role</label>
+      <select name="role" class="form-control" required>
+        <option value="">-- Choose Pharmacy Role --</option>
+        
+        <option value="doctor">pharmacy</option>
+        
+      </select>
+    </div>
+
+    <div class="col-md-6">
+      <label>Username</label>
+      <input type="text" name="username" class="form-control" required>
+    </div>
+
+    <div class="col-md-6">
+      <label>Password</label>
+      <input type="password" name="password" class="form-control" required>
+    </div>
+
 
     
 
