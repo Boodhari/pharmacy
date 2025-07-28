@@ -70,18 +70,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Pharmacy Username: $pharmacy_username
         ";
         $headers = "From: noreply@yourdomain.com";
-        mail($to, $subject, $message, $headers); // You can improve this using PHPMailer
 
-        // ✅ WhatsApp Notification using CallMeBot
-        // $whatsappNumber = "2526xxxxxxxx"; // Your full WhatsApp number (include country code)
-        // $apikey = "YOUR_API_KEY"; // Get from https://www.callmebot.com/
-        // $text = urlencode("✅ New Clinic: $name\n📱 $phone\n👨‍⚕️ $doctor_username\n💊 $pharmacy_username");
-        // $url = "https://api.callmebot.com/whatsapp.php?phone=$whatsappNumber&text=$text&apikey=$apikey";
-        // file_get_contents($url); // Send the message
+        // Send email and check for success
+        if (!mail($to, $subject, $message, $headers)) {
+            $error = "❌ Failed to send notification email.";
+        } else {
+            // ✅ WhatsApp Notification using CallMeBot
+            // $whatsappNumber = "2526xxxxxxxx"; // Your full WhatsApp number (include country code)
+            // $apikey = "YOUR_API_KEY"; // Get from https://www.callmebot.com/
+            // $text = urlencode("✅ New Clinic: $name\n📱 $phone\n👨‍⚕️ $doctor_username\n💊 $pharmacy_username");
+            // $url = "https://api.callmebot.com/whatsapp.php?phone=$whatsappNumber&text=$text&apikey=$apikey";
+            // file_get_contents($url); // Send the message
 
-        // ✅ Redirect
-        header("Location: login.php");
-        exit;
+            // ✅ Redirect
+            header("Location: login.php");
+            exit;
+        }
     }
          else {
             $error = "❌ Failed to create users: " . $stmt2->error . " " . $stmt3->error;
