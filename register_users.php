@@ -55,7 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pharmacy_result = $stmt3->execute();
 
         if ($doctor_result && $pharmacy_result) {
-            $success = "✅ Clinic and both users created successfully!";
+            //$success = "✅ Clinic and both users created successfully!";
+             header("Location: login.php");
+              exit;
         } else {
             $error = "❌ Failed to create users: " . $stmt2->error . " " . $stmt3->error;
         }
