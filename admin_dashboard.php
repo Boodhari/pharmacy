@@ -18,7 +18,7 @@ $result = $conn->query("SELECT * FROM clinics ORDER BY id DESC");
 <body class="container py-5">
   <h2 class="mb-4">🏥 Super Admin Dashboard</h2>
   <a href="create_clinic.php" class="btn btn-success mb-3">+ Create New Clinic</a>
-  <a href="update_clinic.php" class="btn btn-success mb-3">+ Update Clinic</a>
+ 
   <a href="register_user.php" class="btn btn-success mb-3">+ Create New User</a>
 
   <table class="table table-bordered table-striped">
@@ -47,7 +47,7 @@ $result = $conn->query("SELECT * FROM clinics ORDER BY id DESC");
             </span>
           </td>
           <td>
-            <a href="edit_clinic.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
+            <a href="update_clinic.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
             <a href="toggle_clinic.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning">
               <?= $row['status'] == 'active' ? 'Deactivate' : 'Activate' ?>
             </a>
