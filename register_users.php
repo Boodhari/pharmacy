@@ -27,11 +27,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $end = $_POST['subscription_end'];
     $status = $_POST['status'];
 
-    //$admin_username = trim($_POST['admin_username']);
-   // $admin_password = md5($_POST['admin_password']); // You can improve this with password_hash
-    $username = trim($_POST['username']);
-    $password = md5($_POST['password']); // For better security use password_hash()
-    $role = $_POST['role'];
+    // Get doctor user info
+    $doctor_username = trim($_POST['doctor_username']);
+    $doctor_password = md5($_POST['doctor_password']); // For better security use password_hash()
+    $doctor_role = $_POST['doctor_role'];
+
+    // Get pharmacy user info
+    $pharmacy_username = trim($_POST['pharmacy_username']);
+    $pharmacy_password = md5($_POST['pharmacy_password']); // For better security use password_hash()
+    $pharmacy_role = $_POST['pharmacy_role'];
+
     // Insert into clinics table
     $stmt = $conn->prepare("INSERT INTO clinics (name, email, phone, address, subscription_start, subscription_end, status, logo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("ssssssss", $name, $email, $phone, $address, $start, $end, $status , $logo_filename);
@@ -39,16 +44,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($stmt->execute()) {
         $clinic_id = $stmt->insert_id;
 
-        // Create clinic_admin user
-       // $stmt2 = $conn->prepare("INSERT INTO users (username, password, role, clinic_id) VALUES (?, ?, 'clinic_admin', ?)");
-       // $stmt2->bind_param("ssi", $admin_username, $admin_password, $clinic_id);
- // test 2
+        // Insert doctor user
         $stmt2 = $conn->prepare("INSERT INTO users (username, password, role, clinic_id) VALUES (?, ?, ?, ?)");
-        $stmt2->bind_param("sssi", $username, $password, $role, $clinic_id);
-        if ($stmt2->execute()) {
-            $success = "✅ Clinic and admin created successfully!";
+        $stmt2->bind_param("sssi", $doctor_username, $doctor_password, $doctor_role, $clinic_id);
+        $doctor_result = $stmt2->execute();
+
+        // Insert pharmacy user
+        $stmt3 = $conn->prepare("INSERT INTO users (username, password, role, clinic_id) VALUES (?, ?, ?, ?)");
+        $stmt3->bind_param("sssi", $pharmacy_username, $pharmacy_password, $pharmacy_role, $clinic_id);
+        $pharmacy_result = $stmt3->execute();
+
+        if ($doctor_result && $pharmacy_result) {
+            $success = "✅ Clinic and both users created successfully!";
         } else {
-            $error = "❌ Failed to create admin: " . $stmt2->error;
+            $error = "❌ Failed to create users: " . $stmt2->error . " " . $stmt3->error;
         }
     } else {
         $error = "❌ Failed to create clinic: " . $stmt->error;
@@ -127,48 +136,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <input type="date" name="subscription_end" class="form-control" required>
     </div>
     <div class="col-md-6">
-      <label>Status</label>
-      <select name="status" class="form-control">
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-      </select>
-    </div>
-
-    <hr class="my-3">
- <h4>Create 2 Users for your system one for Pharmacy and one for Doctor</h4>
     <h5>🔐 Clinic Doctor user</h5>
     <div class="col-md-6">
       <label>User Role</label>
-      <select name="role" class="form-control" required>
+      <select name="doctor_role" class="form-control" required>
         <option value="">-- Choose Doctor Role --</option>
-        
         <option value="doctor">Doctor</option>
-        
       </select>
     </div>
 
     <div class="col-md-6">
       <label>Username</label>
-      <input type="text" name="username" class="form-control" required>
+      <input type="text" name="doctor_username" class="form-control" required>
     </div>
 
     <div class="col-md-6">
       <label>Password</label>
-      <input type="password" name="password" class="form-control" required>
+      <input type="password" name="doctor_password" class="form-control" required>
     </div>
     <hr>
     <h5 class="mt-4">🔐 Clinic Pharmacy user</h5>
      
     <div class="col-md-6">
       <label>User Role</label>
-      <select name="role" class="form-control" required>
+      <select name="pharmacy_role" class="form-control" required>
         <option value="">-- Choose Pharmacy Role --</option>
-        
-        <option value="doctor">pharmacy</option>
-        
+        <option value="pharmacy">Pharmacy</option>
       </select>
     </div>
 
+    <div class="col-md-6">
+      <label>Username</label>
+      <input type="text" name="pharmacy_username" class="form-control" required>
+    </div>
+
+    <div class="col-md-6">
+      <label>Password</label>
+      <input type="password" name="pharmacy_password" class="form-control" required>
+    </div>
     <div class="col-md-6">
       <label>Username</label>
       <input type="text" name="username" class="form-control" required>
