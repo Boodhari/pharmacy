@@ -37,7 +37,7 @@ $result = $conn->query("SELECT * FROM clinics ORDER BY id DESC");
                          <a class="nav-link" href="create_clinic.php">New Clinics</a>
                      </li>
                      <li class="nav-item">
-                         <a class="nav-link" href="Logout.php">Logout</a>
+                         <a class="nav-link" href="logout.php">Logout</a>
                      </li>
                  </ul>
              </div>
@@ -78,7 +78,7 @@ $result = $conn->query("SELECT * FROM clinics ORDER BY id DESC");
             <a href="toggle_clinic.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning">
               <?= $row['status'] == 'active' ? 'Deactivate' : 'Activate' ?>
             </a>
-            <a href="Delete_clinics.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure to delete this user?')">Delete</a>
+            <a href="Delete_clinics.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure to delete this Clinic?')">Delete</a>
           </td>
         </tr>
       <?php endwhile; ?>

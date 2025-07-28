@@ -8,5 +8,5 @@ include 'config/db.php';
 
 $id = intval($_GET['id']);
 $conn->query("DELETE FROM clinics WHERE id = $id");
-header("Location: manage_users.php");
+header("Location: admin_dashboard.php");
 exit;

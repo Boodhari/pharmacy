@@ -1,4 +1,4 @@
-<footer class="bg-primary text-white pt-4 mt-5">
+<footer class="bg-primary text-white pt-4 mt-5 py-5">
   <div class="container">
     <div class="row text-center text-md-start">
       <!-- Contact Info -->
