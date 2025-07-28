@@ -78,5 +78,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <a href="dashboard.php" class="btn btn-secondary">Cancel</a>
     </div>
   </form>
+  <?php include 'includes/footer.php'; ?>
 </body>
 </html>

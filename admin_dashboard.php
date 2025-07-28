@@ -82,5 +82,6 @@ $result = $conn->query("SELECT * FROM clinics ORDER BY id DESC");
       <?php endwhile; ?>
     </tbody>
   </table>
+  <?php include 'includes/footer.php'; ?>
 </body>
 </html>

@@ -53,5 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <a href="products.php" class="btn btn-secondary">Back</a>
     </div>
   </form>
+  <?php include 'includes/footer.php'; ?>
 </body>
 </html>

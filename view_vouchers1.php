@@ -79,5 +79,6 @@ $result = $stmt->get_result();
       </tbody>
     </table>
   </div>
+  <?php include 'includes/footer.php'; ?>
 </body>
 </html>

@@ -107,5 +107,6 @@ while ($row = $result->fetch_assoc()) {
     <button class="btn btn-primary" onclick="window.print()">🖨 Print</button>
     <a href="dashboard.php" class="btn btn-secondary">⬅️ Back</a>
   </div>
+  <?php include 'includes/footer.php'; ?>
 </body>
 </html>

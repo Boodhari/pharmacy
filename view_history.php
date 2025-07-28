@@ -38,5 +38,6 @@ $result = $conn->query("SELECT * FROM history_taking where clinic_id =" . intval
       </tbody>
     </table>
   </div>
+  <?php include 'includes/footer.php'; ?>
 </body>
 </html>

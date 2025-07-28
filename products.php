@@ -54,5 +54,6 @@ $products = $result->get_result();
 
   <a href="dashboard.php">Back to Dashboard</a>
 </div>
+<?php include 'includes/footer.php'; ?>
 </body>
 </html>

@@ -93,5 +93,6 @@ $total_sales = $total_query->fetch_assoc()['total_sales'] ?? 0;
     </div>
   </div>
 </div>
+<?php include 'includes/footer.php'; ?>
 </body>
 </html>

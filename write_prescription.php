@@ -70,5 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <a href="index.html" class="btn btn-secondary">Home</a>
     </div>
   </form>
+  <?php include 'includes/footer.php'; ?>
 </body>
 </html>

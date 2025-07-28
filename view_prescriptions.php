@@ -38,5 +38,6 @@ $prescriptions = $conn->query("SELECT * FROM prescriptions where clinic_id= " . 
       </div>
     </div>
   <?php endwhile; ?>
+  <?php include 'includes/footer.php'; ?>
 </body>
 </html>

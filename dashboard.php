@@ -186,5 +186,6 @@ for ($i = 6; $i >= 0; $i--) {
     }
   });
 </script>
+<?php include 'includes/footer.php'; ?>
 </body>
 </html>

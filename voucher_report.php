@@ -103,5 +103,6 @@ $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
   <div class="mt-4">
     <h5>Total Collected: <span class="text-success">SLSH <?= number_format($total_sales, 2) ?></span></h5>
   </div>
+  <?php include 'includes/footer.php'; ?>
 </body>
 </html>

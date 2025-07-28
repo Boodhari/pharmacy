@@ -119,6 +119,7 @@ $prescriptions = $conn->query("SELECT * FROM prescriptions ORDER BY date_prescri
       <button onclick="printPrescription(<?= $row['id'] ?>)" class="btn btn-outline-primary btn-sm">🖨️ Print</button>
     </div>
   <?php endwhile; ?>
+  <?php include 'includes/footer.php'; ?>
 
 </body>
 </html>

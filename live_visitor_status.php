@@ -65,5 +65,6 @@ $result = $conn->query("SELECT * FROM visitors where clinic_id=" . intval($_SESS
       <?php endif; ?>
     </tbody>
   </table>
+  <?php include 'includes/footer.php'; ?>
 </body>
 </html>
