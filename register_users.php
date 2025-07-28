@@ -137,6 +137,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <input type="date" name="subscription_end" class="form-control" required>
     </div>
     <div class="col-md-6">
+        <label>Status</label>
+        <select name="status" class="form-control">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
         </div>
         <hr>
     <h5>🔐 Clinic Doctor user</h5>
@@ -177,15 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <label>Password</label>
       <input type="password" name="pharmacy_password" class="form-control" required>
     </div>
-    <div class="col-md-6">
-      <label>Username</label>
-      <input type="text" name="username" class="form-control" required>
-    </div>
-
-    <div class="col-md-6">
-      <label>Password</label>
-      <input type="password" name="password" class="form-control" required>
-    </div>
+   
 
 
     
