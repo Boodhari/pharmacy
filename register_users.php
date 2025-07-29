@@ -60,6 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // PHPMailer Notification
             $mail = new PHPMailer(true);
             try {
+               $mail->CharSet = 'UTF-8';
                 $mail->isSMTP();
                 $mail->Host       = 'smtp.gmail.com';
                 $mail->SMTPAuth   = true;
