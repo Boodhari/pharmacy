@@ -1,6 +1,6 @@
 <?php
 session_start();
-if ($_SESSION['role'] !== 'super_admin') {
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'super_admin') {
     header("Location: login.php");
     exit;
 }
