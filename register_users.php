@@ -68,22 +68,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mail->SMTPSecure = 'tls';
                 $mail->Port       = 587;
 
-                $mail->setFrom('your-email@gmail.com', 'Clinic Registration');
-                $mail->addAddress('AbadirHassan10@gmail.com', 'Admin');
+                $mail->setFrom('AbadirHassan10@gmail.com', 'Clinic Registration');
+                $mail->addAddress('smartdentalclinic237@gmail.com', 'Smart Dental Clinic');
 
-                $mail->isHTML(true);
-                $mail->Subject = "✅ New Clinic Registered: $name";
-                $mail->Body    = "
-                    <h3>New Clinic Registered</h3>
-                    <b>Clinic:</b> $name <br>
-                    <b>Email:</b> $email <br>
-                    <b>Phone:</b> $phone <br>
-                    <b>Doctor:</b> $doctor_username <br>
-                    <b>Pharmacy:</b> $pharmacy_username <br>
-                ";
-
+               $mail->isHTML(true);
+        $mail->Subject = "✅ New Clinic Registered: $name";
+        $mail->Body    = "
+            <h3>New Clinic Registered</h3>
+            <p><strong>Clinic:</strong> $name</p>
+            <p><strong>Email:</strong> $email</p>
+            <p><strong>Phone:</strong> $phone</p>
+            <p><strong>Doctor:</strong> $doctor_username</p>
+            <p><strong>Pharmacy:</strong> $pharmacy_username</p>
+        ";
+        $mail->AltBody = "New Clinic Registered\nClinic: $name\nEmail: $email\nPhone: $phone\nDoctor: $doctor_username\nPharmacy: $pharmacy_username";
                 $mail->send();
-                header("Location: login.php");
+              //  $mail->send();
+echo "<div style='padding: 20px; font-family: Arial; text-align: center;'>
+        <h3>✅ Registered Successfully! please check your Email you wiill get  Message</h3>
+        <p>You will be redirected to the login page shortly...</p>
+      </div>";
+echo "<script>
+        setTimeout(function() {
+          window.location.href = 'login.php';
+        }, 3000);
+      </script>";
                 exit;
 
             } catch (Exception $e) {
