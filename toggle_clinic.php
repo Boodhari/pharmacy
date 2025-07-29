@@ -69,7 +69,7 @@ try {
              
            
          
-        <
+        
             <p>Regards,<br>Admin Team</p>
         ";
     }

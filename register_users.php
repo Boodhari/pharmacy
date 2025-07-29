@@ -85,20 +85,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mail->AltBody = "New Clinic Registered\nClinic: $name\nEmail: $email\nPhone: $phone\nDoctor: $doctor_username\nPharmacy: $pharmacy_username";
                 $mail->send();
               //  $mail->send();
-echo "<div style='padding: 20px; font-family: Arial; text-align: center;'>
-        <h3>✅ Registered Successfully! please check your Email you wiill get  Message</h3>
-        <p>You will be redirected to the login page shortly...</p>
-      </div>";
-echo "<script>
-        setTimeout(function() {
-          window.location.href = 'login.php';
-        }, 3000);
-      </script>";
+// echo "<div style='padding: 20px; font-family: Arial; text-align: center;'>
+//         <h3>✅ Registered Successfully! please check your Email you wiill get  Message</h3>
+//         <p>You will be redirected to the login page shortly...</p>
+//       </div>";
+// echo "<script>
+//         setTimeout(function() {
+//           window.location.href = 'login.php';
+//         }, 3000);
+//       </script>";
                 exit;
 
             } catch (Exception $e) {
                 $error = "❌ Email could not be sent. Error: {$mail->ErrorInfo}";
             }
+            $mail2 = new PHPMailer(true);
+try {
+  $mail->CharSet = 'UTF-8';
+    $mail2->isSMTP();
+    $mail2->Host = 'smtp.gmail.com';
+    $mail2->SMTPAuth = true;
+    $mail2->Username = 'AbadirHassan10@gmail.com';
+    $mail2->Password = 'your_app_password';
+    $mail2->SMTPSecure = 'tls';
+    $mail2->Port = 587;
+
+    $mail2->setFrom('AbadirHassan10@gmail.com', 'Clinic Registration');
+    $mail2->addAddress($email, $name); // Clinic's own email
+
+    $mail2->isHTML(true);
+    $mail2->Subject = "🎉 Welcome to the Clinic System!";
+    $mail2->Body = "
+        <h3>Welcome, $name!</h3>
+        <p>Your clinic has been registered successfully. Please wait for activation.</p>
+        <p>If you need support, contact us at AbadirHassan10@gmail.com </p>
+    ";
+    $mail2->send();
+    echo "<div style='padding: 20px; font-family: Arial; text-align: center;'>
+            <h3>✅ Clinic Registered Successfully!</h3>
+            <p>You will receive an email confirmation shortly.</p>
+          </div>";
+          echo "<script>
+                setTimeout(function() {
+                  window.location.href = 'login.php';
+                }, 3000);
+              </script>";
+} catch (Exception $e) {
+    error_log("Clinic email failed: {$mail2->ErrorInfo}");
+}
         } else {
             $error = "❌ Failed to create users.";
         }
