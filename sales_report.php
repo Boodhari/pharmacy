@@ -7,29 +7,23 @@ if (!isset($_SESSION['username'])) {
 
 include 'config/db.php';
 
-$clinic_id = $_SESSION['clinic_id'];
-$selected_date = $_GET['date'] ?? date('Y-m-d');
 
-// Fetch sales records
-$stmt = $conn->prepare("
-  SELECT s.id, s.quantity_sold, s.total, s.sale_date, p.name, p.price 
-  FROM sales s 
-  JOIN products p ON s.product_id = p.id 
-  WHERE DATE(s.sale_date) = ? AND s.clinic_id = ?
-  ORDER BY s.sale_date DESC
-");
-$stmt->bind_param("si", $selected_date, $clinic_id);
-$stmt->execute();
-$result = $stmt->get_result();
+// Handle search
+$selected_date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+
+$query = "
+SELECT s.*, p.name, p.price 
+FROM sales s 
+JOIN products p ON s.product_id = p.id 
+WHERE DATE(s.sale_date) = '$selected_date' and s.clinic_id = " . intval($_SESSION['clinic_id']) . "
+ORDER BY s.sale_date DESC";
+
+$result = $conn->query($query);
 
 // Calculate total sales
-$total_stmt = $conn->prepare("SELECT SUM(total) AS total_sales FROM sales WHERE DATE(sale_date) = ? AND clinic_id = ?");
-$total_stmt->bind_param("si", $selected_date, $clinic_id);
-$total_stmt->execute();
-$total_result = $total_stmt->get_result();
-$total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
+$total_query = $conn->query("SELECT SUM(total) AS total_sales FROM sales WHERE DATE(sale_date) = '$selected_date'");
+$total_sales = $total_query->fetch_assoc()['total_sales'] ?? 0;
 ?>
-
 <?php include('includes/header.php'); ?>
 <!DOCTYPE html>
 <html>
@@ -41,13 +35,13 @@ $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
 <div class="container mt-5">
   <h2 class="mb-4">Sales Report for <?= htmlspecialchars($selected_date) ?></h2>
 
-  <!-- Date Filter -->
+  <!-- Date Search -->
   <form method="GET" class="row g-3 mb-4">
     <div class="col-auto">
       <input type="date" name="date" class="form-control" value="<?= $selected_date ?>" required>
     </div>
     <div class="col-auto">
-      <button type="submit" class="btn btn-primary">Search</button>
+      <button type="submit" class="btn btn-primary">Search by Date</button>
     </div>
     <div class="col-auto">
       <a href="dashboard.php" class="btn btn-secondary">Back</a>
@@ -66,6 +60,7 @@ $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
             <th>Unit Price</th>
             <th>Total</th>
             <th>Date</th>
+             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -75,9 +70,13 @@ $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
                 <td><?= $i++ ?></td>
                 <td><?= htmlspecialchars($row['name']) ?></td>
                 <td><?= $row['quantity_sold'] ?></td>
-                <!-- <td>SLSH<?= number_format($row['price'], 2) ?></td>
+                <td>SLSH<?= number_format($row['price'], 2) ?></td>
                 <td>SLSH<?= number_format($row['total'], 2) ?></td>
-                <td><?= $row['sale_date'] ?></td> -->
+                <td><?= $row['sale_date'] ?></td>
+                <td>
+                    <a href="receipt.php?sale_id=<?= $row['id'] ?>" class="btn btn-sm btn-primary" target="_blank">🖨️ Print</a>
+    <a href="delete_sale.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this sale?');">🗑️ Delete</a>
+                </td>
               </tr>
             <?php endwhile; ?>
           <?php else: ?>
