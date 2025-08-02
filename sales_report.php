@@ -31,6 +31,7 @@ $total_result = $total_stmt->get_result();
 $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
 ?>
 <?php include('includes/header.php'); ?>
+<?php // End PHP before HTML ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -93,14 +94,15 @@ $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
               </tr>
             <?php endwhile; ?>
           <?php else: ?>
-            <tr><td colspan="6" class="text-center text-muted">No sales found for this date.</td></tr>
+            <tr><td colspan="7" class="text-center text-muted">No sales found for this date.</td></tr>
           <?php endif; ?>
-        </tbody>
         <tfoot class="table-light">
           <tr>
             <th colspan="4" class="text-end">Total Sales:</th>
             <th colspan="2">$<?= number_format($total_sales, 2) ?></th>
+            <th></th>
           </tr>
+        </tfoot>
         </tfoot>
       </table>
     </div>
