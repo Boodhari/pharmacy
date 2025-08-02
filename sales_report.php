@@ -75,9 +75,9 @@ $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
                 <td><?= $i++ ?></td>
                 <td><?= htmlspecialchars($row['name']) ?></td>
                 <td><?= $row['quantity_sold'] ?></td>
-                <td>SLSH<?= number_format($row['price'], 2) ?></td>
+                <!-- <td>SLSH<?= number_format($row['price'], 2) ?></td>
                 <td>SLSH<?= number_format($row['total'], 2) ?></td>
-                <td><?= $row['sale_date'] ?></td>
+                <td><?= $row['sale_date'] ?></td> -->
               </tr>
             <?php endwhile; ?>
           <?php else: ?>
