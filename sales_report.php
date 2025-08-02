@@ -10,9 +10,9 @@ include 'config/db.php';
 $clinic_id = $_SESSION['clinic_id'];
 $selected_date = $_GET['date'] ?? date('Y-m-d');
 
-// --- Sales Report Grouped by Product ---
+// Fetch sales records
 $stmt = $conn->prepare("
-  SELECT s.*, p.name, p.price 
+  SELECT s.id, s.quantity_sold, s.total, s.sale_date, p.name, p.price 
   FROM sales s 
   JOIN products p ON s.product_id = p.id 
   WHERE DATE(s.sale_date) = ? AND s.clinic_id = ?
@@ -21,13 +21,15 @@ $stmt = $conn->prepare("
 $stmt->bind_param("si", $selected_date, $clinic_id);
 $stmt->execute();
 $result = $stmt->get_result();
-// --- Total Sales (for footer) ---
+
+// Calculate total sales
 $total_stmt = $conn->prepare("SELECT SUM(total) AS total_sales FROM sales WHERE DATE(sale_date) = ? AND clinic_id = ?");
 $total_stmt->bind_param("si", $selected_date, $clinic_id);
 $total_stmt->execute();
 $total_result = $total_stmt->get_result();
 $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
 ?>
+
 <?php include('includes/header.php'); ?>
 <!DOCTYPE html>
 <html>
@@ -60,9 +62,10 @@ $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
           <tr>
             <th>#</th>
             <th>Product</th>
-            <th>Quantity Sold</th>
+            <th>Quantity</th>
             <th>Unit Price</th>
-            <th>Total Sales</th>
+            <th>Total</th>
+            <th>Date</th>
           </tr>
         </thead>
         <tbody>
@@ -71,19 +74,20 @@ $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
               <tr>
                 <td><?= $i++ ?></td>
                 <td><?= htmlspecialchars($row['name']) ?></td>
-                <td><?= $row['total_quantity'] ?></td>
+                <td><?= $row['quantity_sold'] ?></td>
                 <td>SLSH<?= number_format($row['price'], 2) ?></td>
-                <td>SLSH<?= number_format($row['total_sales'], 2) ?></td>
+                <td>SLSH<?= number_format($row['total'], 2) ?></td>
+                <td><?= $row['sale_date'] ?></td>
               </tr>
             <?php endwhile; ?>
           <?php else: ?>
-            <tr><td colspan="5" class="text-center text-muted">No sales found for this date.</td></tr>
+            <tr><td colspan="6" class="text-center text-muted">No sales found for this date.</td></tr>
           <?php endif; ?>
         </tbody>
         <tfoot class="table-light">
           <tr>
             <th colspan="4" class="text-end">Total Sales:</th>
-            <th>SLSH<?= number_format($total_sales, 2) ?></th>
+            <th colspan="2">SLSH<?= number_format($total_sales, 2) ?></th>
           </tr>
         </tfoot>
       </table>
