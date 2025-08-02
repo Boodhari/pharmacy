@@ -7,25 +7,25 @@ if (!isset($_SESSION['username'])) {
 
 include 'config/db.php';
 
+$clinic_id = $_SESSION['clinic_id'];
+$selected_date = $_GET['date'] ?? date('Y-m-d');
 
-// Handle search
-$selected_date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
-
-// Use prepared statements to prevent SQL injection
+// --- Sales Report Grouped by Product ---
 $stmt = $conn->prepare("
-SELECT s.*, p.name, p.price 
-FROM sales s 
-JOIN products p ON s.product_id = p.id 
-WHERE DATE(s.sale_date) = ? AND s.clinic_id = ?
-ORDER BY s.sale_date DESC
+  SELECT p.name, p.price, SUM(s.quantity_sold) AS total_quantity, SUM(s.total) AS total_sales
+  FROM sales s
+  JOIN products p ON s.product_id = p.id
+  WHERE DATE(s.sale_date) = ? AND s.clinic_id = ?
+  GROUP BY s.product_id
+  ORDER BY total_sales DESC
 ");
-$stmt->bind_param("si", $selected_date, $_SESSION['clinic_id']);
+$stmt->bind_param("si", $selected_date, $clinic_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
-// Calculate total sales securely
+// --- Total Sales (for footer) ---
 $total_stmt = $conn->prepare("SELECT SUM(total) AS total_sales FROM sales WHERE DATE(sale_date) = ? AND clinic_id = ?");
-$total_stmt->bind_param("si", $selected_date, $_SESSION['clinic_id']);
+$total_stmt->bind_param("si", $selected_date, $clinic_id);
 $total_stmt->execute();
 $total_result = $total_stmt->get_result();
 $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
@@ -41,13 +41,13 @@ $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
 <div class="container mt-5">
   <h2 class="mb-4">Sales Report for <?= htmlspecialchars($selected_date) ?></h2>
 
-  <!-- Date Search -->
+  <!-- Date Filter -->
   <form method="GET" class="row g-3 mb-4">
     <div class="col-auto">
       <input type="date" name="date" class="form-control" value="<?= $selected_date ?>" required>
     </div>
     <div class="col-auto">
-      <button type="submit" class="btn btn-primary">Search by Date</button>
+      <button type="submit" class="btn btn-primary">Search</button>
     </div>
     <div class="col-auto">
       <a href="dashboard.php" class="btn btn-secondary">Back</a>
@@ -62,11 +62,9 @@ $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
           <tr>
             <th>#</th>
             <th>Product</th>
-            <th>Quantity</th>
+            <th>Quantity Sold</th>
             <th>Unit Price</th>
-            <th>Total</th>
-            <th>Date</th>
-             <th>Actions</th>
+            <th>Total Sales</th>
           </tr>
         </thead>
         <tbody>
@@ -75,23 +73,19 @@ $total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
               <tr>
                 <td><?= $i++ ?></td>
                 <td><?= htmlspecialchars($row['name']) ?></td>
-                <td><?= $row['quantity_sold'] ?></td>
+                <td><?= $row['total_quantity'] ?></td>
                 <td>SLSH<?= number_format($row['price'], 2) ?></td>
-                <td>SLSH<?= number_format($row['total'], 2) ?></td>
-                <td><?= $row['sale_date'] ?></td>
-                <td>
-                  <!-- Actions can be added here -->
-                </td>
+                <td>SLSH<?= number_format($row['total_sales'], 2) ?></td>
               </tr>
             <?php endwhile; ?>
           <?php else: ?>
-            <tr><td colspan="7" class="text-center text-muted">No sales found for this date.</td></tr>
+            <tr><td colspan="5" class="text-center text-muted">No sales found for this date.</td></tr>
           <?php endif; ?>
         </tbody>
         <tfoot class="table-light">
           <tr>
             <th colspan="4" class="text-end">Total Sales:</th>
-            <th colspan="2">SLSH<?= number_format($total_sales, 2) ?></th>
+            <th>SLSH<?= number_format($total_sales, 2) ?></th>
           </tr>
         </tfoot>
       </table>
