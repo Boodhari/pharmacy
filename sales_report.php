@@ -11,18 +11,24 @@ include 'config/db.php';
 // Handle search
 $selected_date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
 
-$query = "
+// Use prepared statements to prevent SQL injection
+$stmt = $conn->prepare("
 SELECT s.*, p.name, p.price 
 FROM sales s 
 JOIN products p ON s.product_id = p.id 
-WHERE DATE(s.sale_date) = '$selected_date' and s.clinic_id = " . intval($_SESSION['clinic_id']) . "
-ORDER BY s.sale_date DESC";
+WHERE DATE(s.sale_date) = ? AND s.clinic_id = ?
+ORDER BY s.sale_date DESC
+");
+$stmt->bind_param("si", $selected_date, $_SESSION['clinic_id']);
+$stmt->execute();
+$result = $stmt->get_result();
 
-$result = $conn->query($query);
-
-// Calculate total sales
-$total_query = $conn->query("SELECT SUM(total) AS total_sales FROM sales WHERE DATE(sale_date) = '$selected_date'");
-$total_sales = $total_query->fetch_assoc()['total_sales'] ?? 0;
+// Calculate total sales securely
+$total_stmt = $conn->prepare("SELECT SUM(total) AS total_sales FROM sales WHERE DATE(sale_date) = ? AND clinic_id = ?");
+$total_stmt->bind_param("si", $selected_date, $_SESSION['clinic_id']);
+$total_stmt->execute();
+$total_result = $total_stmt->get_result();
+$total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
 ?>
 <?php include('includes/header.php'); ?>
 <!DOCTYPE html>
@@ -74,13 +80,12 @@ $total_sales = $total_query->fetch_assoc()['total_sales'] ?? 0;
                 <td>SLSH<?= number_format($row['total'], 2) ?></td>
                 <td><?= $row['sale_date'] ?></td>
                 <td>
-                    <a href="receipt.php?sale_id=<?= $row['id'] ?>" class="btn btn-sm btn-primary" target="_blank">🖨️ Print</a>
-    <a href="delete_sale.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this sale?');">🗑️ Delete</a>
+                  <!-- Actions can be added here -->
                 </td>
               </tr>
             <?php endwhile; ?>
           <?php else: ?>
-            <tr><td colspan="6" class="text-center text-muted">No sales found for this date.</td></tr>
+            <tr><td colspan="7" class="text-center text-muted">No sales found for this date.</td></tr>
           <?php endif; ?>
         </tbody>
         <tfoot class="table-light">
