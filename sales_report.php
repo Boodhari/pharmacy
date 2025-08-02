@@ -18,19 +18,21 @@ JOIN products p ON s.product_id = p.id
 WHERE DATE(s.sale_date) = ? AND s.clinic_id = ?
 ORDER BY s.sale_date DESC";
 
-$stmt = $conn->prepare($query);
-$stmt->bind_param('si', $selected_date, $_SESSION['clinic_id']);
-$stmt->execute();
-$stmt = $conn->prepare("SELECT SUM(total) AS total_sales FROM sales WHERE DATE(sale_date) = ?");
-$stmt->bind_param("s", $selected_date);
-// Calculate total sales
-// If there are no sales for the selected date, SUM(total) will return null, so we default to 0
-$total_query = $conn->query("SELECT SUM(total) AS total_sales FROM sales WHERE DATE(sale_date) = '$selected_date'");
-$total_sales = $total_query->fetch_assoc()['total_sales'] ?? 0;
-$stmt->close();
-// Calculate total sales
-$total_query = $conn->query("SELECT SUM(total) AS total_sales FROM sales WHERE DATE(sale_date) = '$selected_date'");
-$total_sales = $total_query->fetch_assoc()['total_sales'] ?? 0;
+// Prepare and execute sales query
+$sales_stmt = $conn->prepare($query);
+$sales_stmt->bind_param('si', $selected_date, $_SESSION['clinic_id']);
+$sales_stmt->execute();
+$sales_result = $sales_stmt->get_result();
+
+// Prepare and execute total sales query
+$total_stmt = $conn->prepare("SELECT SUM(total) AS total_sales FROM sales WHERE DATE(sale_date) = ? AND clinic_id = ?");
+$total_stmt->bind_param("si", $selected_date, $_SESSION['clinic_id']);
+$total_stmt->execute();
+$total_result = $total_stmt->get_result();
+$total_sales = $total_result->fetch_assoc()['total_sales'] ?? 0;
+
+$sales_stmt->close();
+$total_stmt->close();
 ?>
 <?php include('includes/header.php'); ?>
 <!DOCTYPE html>
@@ -70,17 +72,11 @@ $total_sales = $total_query->fetch_assoc()['total_sales'] ?? 0;
             <th>Date</th>
              <th>Actions</th>
           </tr>
-        </thead>
-        <tbody>
           <?php
-          // You need to fetch the result from the first prepared statement
-          $result = $conn->prepare($query);
-          $result->bind_param('si', $selected_date, $_SESSION['clinic_id']);
-          $result->execute();
-          $result = $result->get_result();
+          // Use the result from the prepared statement above
           ?>
-          <?php if ($result->num_rows > 0): ?>
-            <?php $i = 1; while ($row = $result->fetch_assoc()): ?>
+          <?php if ($sales_result->num_rows > 0): ?>
+            <?php $i = 1; while ($row = $sales_result->fetch_assoc()): ?>
               <tr>
                 <td><?= $i++ ?></td>
                 <td><?= htmlspecialchars($row['name']) ?></td>
