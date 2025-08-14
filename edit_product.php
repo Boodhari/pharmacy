@@ -6,6 +6,7 @@ if (!isset($_SESSION['username']) || !isset($_SESSION['clinic_id'])) {
 }
 
 include 'config/db.php';
+include('includes/header.php');
 $clinic_id = $_SESSION['clinic_id'];
 
 $id = $_GET['id'] ?? 0;
