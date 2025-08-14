@@ -6,48 +6,62 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'super_admin') {
 }
 
 include 'config/db.php';
+include('includes/header.php');
+
 $success = '';
 $error = '';
 $logo_filename = null;
 
-if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
-    $upload_dir = 'uploads/logos/';
-    if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
-
-    $ext = pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION);
-    $logo_filename = uniqid('clinic_', true) . '.' . $ext;
-    move_uploaded_file($_FILES['logo']['tmp_name'], $upload_dir . $logo_filename);
-}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim($_POST['name']);
-    $email = trim($_POST['email']);
-    $phone = trim($_POST['phone']);
-    $address = trim($_POST['address']);
-    $start = $_POST['subscription_start'];
-    $end = $_POST['subscription_end'];
-    $status = $_POST['status'];
+    // Handle logo upload only if provided
+    if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+        $upload_dir = 'uploads/logos/';
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
 
-    $admin_username = trim($_POST['admin_username']);
-    $admin_password = md5($_POST['admin_password']); // You can improve this with password_hash
+        $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+        $ext = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
 
-    // Insert into clinics table
-    $stmt = $conn->prepare("INSERT INTO clinics (name, email, phone, address, subscription_start, subscription_end, status, logo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssssss", $name, $email, $phone, $address, $start, $end, $status , $logo_filename);
-
-    if ($stmt->execute()) {
-        $clinic_id = $stmt->insert_id;
-
-        // Create clinic_admin user
-        $stmt2 = $conn->prepare("INSERT INTO users (username, password, role, clinic_id) VALUES (?, ?, 'clinic_admin', ?)");
-        $stmt2->bind_param("ssi", $admin_username, $admin_password, $clinic_id);
-
-        if ($stmt2->execute()) {
-            $success = "✅ Clinic and admin created successfully!";
+        if (!in_array($ext, $allowed_ext)) {
+            $error = "❌ Invalid file type. Only JPG, JPEG, PNG, GIF allowed.";
+        } elseif ($_FILES['logo']['size'] > 2 * 1024 * 1024) {
+            $error = "❌ File too large. Maximum 2MB allowed.";
         } else {
-            $error = "❌ Failed to create admin: " . $stmt2->error;
+            $logo_filename = uniqid('clinic_', true) . '.' . $ext;
+            move_uploaded_file($_FILES['logo']['tmp_name'], $upload_dir . $logo_filename);
         }
-    } else {
-        $error = "❌ Failed to create clinic: " . $stmt->error;
+    }
+
+    if (!$error) {
+        $name = trim($_POST['name']);
+        $email = trim($_POST['email']);
+        $phone = trim($_POST['phone']);
+        $address = trim($_POST['address']);
+        $start = $_POST['subscription_start'];
+        $end = $_POST['subscription_end'];
+        $status = $_POST['status'];
+
+        $admin_username = trim($_POST['admin_username']);
+        $admin_password = md5($_POST['admin_password']); // Use password_hash() for better security
+
+        // Insert into clinics table
+        $stmt = $conn->prepare("INSERT INTO clinics (name, email, phone, address, subscription_start, subscription_end, status, logo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssssss", $name, $email, $phone, $address, $start, $end, $status, $logo_filename);
+
+        if ($stmt->execute()) {
+            $clinic_id = $stmt->insert_id;
+
+            // Create clinic_admin user
+            $stmt2 = $conn->prepare("INSERT INTO users (username, password, role, clinic_id) VALUES (?, ?, 'clinic_admin', ?)");
+            $stmt2->bind_param("ssi", $admin_username, $admin_password, $clinic_id);
+
+            if ($stmt2->execute()) {
+                $success = "✅ Clinic and admin created successfully!";
+            } else {
+                $error = "❌ Failed to create admin: " . $stmt2->error;
+            }
+        } else {
+            $error = "❌ Failed to create clinic: " . $stmt->error;
+        }
     }
 }
 ?>

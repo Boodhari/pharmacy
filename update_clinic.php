@@ -7,7 +7,7 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'super_admin') {
 
 include 'config/db.php';
 
-$clinic_id = $_GET['id'] ?? 0;
+$clinic_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $success = '';
 $error = '';
 
@@ -18,7 +18,7 @@ $stmt->execute();
 $clinic = $stmt->get_result()->fetch_assoc();
 
 if (!$clinic) {
-    die("Clinic not found.");
+    die("❌ Clinic not found.");
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -29,40 +29,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $start = $_POST['subscription_start'];
     $end = $_POST['subscription_end'];
     $status = $_POST['status'];
+    $logo_filename = $clinic['logo']; // default to old logo
 
-    // Handle logo upload
-    if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+    // Handle logo upload if provided
+    if (!empty($_FILES['logo']['name']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
         $upload_dir = 'uploads/logos/';
         if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
-        $ext = pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION);
-        $logo_filename = uniqid('clinic_', true) . '.' . $ext;
-        move_uploaded_file($_FILES['logo']['tmp_name'], $upload_dir . $logo_filename);
-    } else {
-        $logo_filename = $clinic['logo']; // Keep old logo if not changed
+
+        $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+        $ext = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
+
+        if (!in_array($ext, $allowed_ext)) {
+            $error = "❌ Invalid file type. Only JPG, JPEG, PNG, GIF are allowed.";
+        } elseif ($_FILES['logo']['size'] > 2 * 1024 * 1024) {
+            $error = "❌ File too large. Max size is 2MB.";
+        } else {
+            // Remove old logo if exists
+            if (!empty($clinic['logo']) && file_exists($upload_dir . $clinic['logo'])) {
+                unlink($upload_dir . $clinic['logo']);
+            }
+            // Save new logo
+            $logo_filename = uniqid('clinic_', true) . '.' . $ext;
+            move_uploaded_file($_FILES['logo']['tmp_name'], $upload_dir . $logo_filename);
+        }
     }
 
-    // Update clinic info
-    $stmt = $conn->prepare("UPDATE clinics SET name=?, email=?, phone=?, address=?, subscription_start=?, subscription_end=?, status=?, logo=? WHERE id=?");
-    $stmt->bind_param("ssssssssi", $name, $email, $phone, $address, $start, $end, $status, $logo_filename, $clinic_id);
+    if (!$error) {
+        // Update clinic info
+        $stmt = $conn->prepare("UPDATE clinics SET name=?, email=?, phone=?, address=?, subscription_start=?, subscription_end=?, status=?, logo=? WHERE id=?");
+        $stmt->bind_param("ssssssssi", $name, $email, $phone, $address, $start, $end, $status, $logo_filename, $clinic_id);
 
-    if ($stmt->execute()) {
-        $success = "✅ Clinic updated successfully!";
-        // Refresh clinic data
-        $clinic = [
-            'name' => $name,
-            'email' => $email,
-            'phone' => $phone,
-            'address' => $address,
-            'subscription_start' => $start,
-            'subscription_end' => $end,
-            'status' => $status,
-            'logo' => $logo_filename
-        ];
-    } else {
-        $error = "❌ Failed to update clinic: " . $stmt->error;
+        if ($stmt->execute()) {
+            $success = "✅ Clinic updated successfully!";
+            // Refresh clinic data
+            $clinic = [
+                'name' => $name,
+                'email' => $email,
+                'phone' => $phone,
+                'address' => $address,
+                'subscription_start' => $start,
+                'subscription_end' => $end,
+                'status' => $status,
+                'logo' => $logo_filename
+            ];
+        } else {
+            $error = "❌ Failed to update clinic: " . $stmt->error;
+        }
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html>
