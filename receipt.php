@@ -98,9 +98,9 @@ while ($row = $result->fetch_assoc()) {
       <?php foreach ($sales as $s): ?>
         <tr>
           <td><?= htmlspecialchars($s['product_name']) ?></td>
-          <td><?= number_format($s['unit_price'], 2) ?> SLSH</td>
+          <td><?= number_format($s['unit_price'], 2) ?> USD</td>
           <td><?= $s['quantity_sold'] ?></td>
-          <td><?= number_format($s['total'], 2) ?> SLSH</td>
+          <td><?= number_format($s['total'], 2) ?> USD</td>
         </tr>
       <?php endforeach; ?>
     </tbody>
