@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <input type="text" name="name" class="form-control" required>
     </div>
     <div class="col-md-3">
-      <label class="form-label">Price (SLSH)</label>
+      <label class="form-label">Price (USD)</label>
       <input type="number" name="price" step="0.01" class="form-control" required>
     </div>
     <div class="col-md-3">

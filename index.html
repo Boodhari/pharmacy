@@ -12,28 +12,48 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 20px;
     }
     .welcome-box {
       background-color: white;
-      padding: 40px;
+      padding: 30px;
       border-radius: 20px;
       box-shadow: 0 0 15px rgba(0,0,0,0.1);
       text-align: center;
+      max-width: 800px;
+      width: 100%;
     }
     .btn-login {
-      font-size: 1.2rem;
-      padding: 10px 30px;
+      font-size: 1rem;
+      padding: 10px 20px;
+      margin: 5px;
+    }
+    /* Adjust headings for small devices */
+    @media (max-width: 576px) {
+      .welcome-box h1 {
+        font-size: 1.5rem;
+      }
+      .display-3 {
+        font-size: 2rem;
+      }
+      .lead {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
 
 <div class="welcome-box">
-  <h1 class="display-3">Ministry Of Healths Somaliland</h1>
-  <h1 class="mb-3">💊 Welcome to Clinic Management System of Somaliland</h1>
-  <p class="lead mb-4">All Efficiently manage your Clinic , Patients ,  pharmacy's inventory, sales, and reporting in one place.</p>
-  <a href="login.php" class="btn btn-primary btn-login">Login to System</a>
-  <a href="register_users.php" class="btn btn-primary btn-login">Register New Clinic</a>
+  <h1 class="display-3 mb-4">Dental Management System</h1>
+  <h2 class="mb-3">💊 Welcome to the Clinic Management System</h2>
+  <p class="lead mb-4">
+    Efficiently manage your Clinic, Patients, Pharmacy's inventory, sales, and reporting — all in one place.
+  </p>
+  <div class="d-flex flex-wrap justify-content-center">
+    <a href="login.php" class="btn btn-primary btn-login">Login to System</a>
+    <a href="register_users.php" class="btn btn-success btn-login">Register New Clinic</a>
+  </div>
 </div>
 
 </body>
