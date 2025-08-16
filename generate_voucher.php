@@ -41,15 +41,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $service_name = $service['services'] ?? 'Unknown Service';
     $service_total = floatval($service['total_price'] ?? 0);
 
-    // Get previous balance (sum of all remaining balances for this patient)
-    $stmt3 = $conn->prepare("SELECT SUM(balance) as total_previous_balance FROM vouchers WHERE visitor_id = ? AND clinic_id = ?");
-    $stmt3->bind_param("ii", $visitor_id, $clinic_id);
-    $stmt3->execute();
-    $row = $stmt3->get_result()->fetch_assoc();
-    $previous_balance = floatval($row['total_previous_balance'] ?? 0);
+    // Get previous unpaid balance
+$stmt3 = $conn->prepare("
+    SELECT COALESCE(SUM(service_total - amount_paid), 0) AS total_previous_balance
+    FROM vouchers 
+    WHERE visitor_id = ? AND clinic_id = ?
+");
+$stmt3->bind_param("ii", $visitor_id, $clinic_id);
+$stmt3->execute();
+$row = $stmt3->get_result()->fetch_assoc();
+$previous_balance = floatval($row['total_previous_balance'] ?? 0);
 
-    // Calculate new balance
-    $new_balance = max($previous_balance + $service_total - $amount_paid, 0);
+// Calculate new balance
+$new_balance = ($previous_balance + $service_total) - $amount_paid;
 
     // Insert voucher
     $insert = $conn->prepare("
