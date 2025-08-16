@@ -56,9 +56,9 @@ if (!$voucher) {
 <body>
   <div class="voucher">
    <h4 class="text-center mb-4">🧾 <?= htmlspecialchars($clinic_name) ?> Dental Clinic</h4>
-   <h3 class="text-center">Location <?= htmlspecialchars($clinic_address) ?> 
-   Edahab :<?= htmlspecialchars($clinic_edahab) ?>
-   Zaad :<?= htmlspecialchars($clinic_zaad) ?> </h3>
+   <h5 class="text-center">Location : <?= htmlspecialchars($clinic_address) ?> ||
+   Edahab :<?= htmlspecialchars($clinic_edahab) ?> ||
+   Zaad :<?= htmlspecialchars($clinic_zaad) ?> </h5>
     <hr>
     <p><strong>Voucher ID:</strong> #<?= $voucher['id'] ?></p>
     <p><strong>Patient Name:</strong> <?= htmlspecialchars($voucher['patient_name']) ?></p>
