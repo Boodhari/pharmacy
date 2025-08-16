@@ -30,9 +30,11 @@ if (isset($_SESSION['clinic_id'])) {
 <body class="bg-light">
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
   <a class="navbar-brand d-flex align-items-center" href="drdashboard.php">
-  <!-- <?php if ($clinic_logo): ?>
-    <img src="uploads/logos/<?= htmlspecialchars($clinic_logo) ?>" alt="Logo" height="40" class="me-2">
-  <?php endif; ?> -->
+  /*
+  <?php if ($clinic_logo): ?>
+    <!-- <img src="uploads/logos/<?= htmlspecialchars($clinic_logo) ?>" alt="Logo" height="40" class="me-2"> -->
+  <?php endif; ?>
+  */
   <?= htmlspecialchars($clinic_name) ?>
 </a>
   <div class="ms-auto">
