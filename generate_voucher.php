@@ -6,14 +6,13 @@ $success = false;
 // Fetch visitors for dropdown
 $visitors = $conn->query("SELECT id, full_name, purpose FROM visitors WHERE clinic_id = " . intval($_SESSION['clinic_id']) . " ORDER BY visit_date DESC");
 
-// Fetch distinct services from history_taking
-$services = $conn->query("SELECT DISTINCT services FROM history_taking ORDER BY date_taken DESC");
+// Fetch services from history_taking with their ID and total_price
+$services = $conn->query("SELECT id, services, total_price FROM history_taking ORDER BY date_taken DESC");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $visitor_id = $_POST['visitor_id'];
-    $service = $_POST['service'];
+    $history_id = $_POST['history_id'];
     $amount_paid = floatval($_POST['amount_paid']);
-    $service_total = floatval($_POST['service_total']); // Total cost of current service
 
     // Get visitor name
     $stmt = $conn->prepare("SELECT full_name FROM visitors WHERE id = ?");
@@ -22,20 +21,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $visitor = $stmt->get_result()->fetch_assoc();
     $patient_name = $visitor['full_name'];
 
-    // Get previous balance (sum of all remaining balances)
-    $stmt2 = $conn->prepare("SELECT SUM(balance) as total_previous_balance FROM vouchers WHERE visitor_id = ?");
-    $stmt2->bind_param("i", $visitor_id);
+    // Get service total price and name from history_taking
+    $stmt2 = $conn->prepare("SELECT total_price, services FROM history_taking WHERE id = ?");
+    $stmt2->bind_param("i", $history_id);
     $stmt2->execute();
-    $row = $stmt2->get_result()->fetch_assoc();
+    $service = $stmt2->get_result()->fetch_assoc();
+    $service_name = $service['services'];
+    $service_total = floatval($service['total_price']);
+
+    // Get previous balance (sum of all remaining balances)
+    $stmt3 = $conn->prepare("SELECT SUM(balance) as total_previous_balance FROM vouchers WHERE visitor_id = ?");
+    $stmt3->bind_param("i", $visitor_id);
+    $stmt3->execute();
+    $row = $stmt3->get_result()->fetch_assoc();
     $previous_balance = floatval($row['total_previous_balance'] ?? 0);
 
-    // Calculate remaining balance
+    // Calculate new balance
     $new_balance = max($previous_balance + $service_total - $amount_paid, 0);
 
     // Insert voucher
     $clinic_id = $_SESSION['clinic_id'];
-    $insert = $conn->prepare("INSERT INTO vouchers (clinic_id, visitor_id, patient_name, service, amount_paid, service_total, previous_balance, balance) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $insert->bind_param("iissdddd", $clinic_id, $visitor_id, $patient_name, $service, $amount_paid, $service_total, $previous_balance, $new_balance);
+    $insert = $conn->prepare("INSERT INTO vouchers (clinic_id, visitor_id, patient_name, history_id, service, amount_paid, service_total, previous_balance, balance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $insert->bind_param("iisssdddd", $clinic_id, $visitor_id, $patient_name, $history_id, $service_name, $amount_paid, $service_total, $previous_balance, $new_balance);
     $insert->execute();
     $voucher_id = $insert->insert_id;
     $success = true;
@@ -69,18 +76,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <div class="col-md-6">
-      <label>Service Description</label>
-      <input list="services" name="service" class="form-control" required placeholder="Choose or type service">
-      <datalist id="services">
+      <label>Select Service</label>
+      <select name="history_id" class="form-select" required>
+        <option value="">-- Choose Service --</option>
         <?php while ($s = $services->fetch_assoc()): ?>
-          <option value="<?= htmlspecialchars($s['services']) ?>">
+          <option value="<?= $s['id'] ?>">
+            <?= htmlspecialchars($s['services']) ?> - <?= number_format($s['total_price'], 2) ?> SLSH
+          </option>
         <?php endwhile; ?>
-      </datalist>
-    </div>
-
-    <div class="col-md-4">
-      <label>Total Service Cost (SLSH)</label>
-      <input type="number" step="0.01" name="service_total" class="form-control" required>
+      </select>
     </div>
 
     <div class="col-md-4">
