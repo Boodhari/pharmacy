@@ -6,13 +6,15 @@ $id = $_GET['id'] ?? 0;
 $clinic_name = 'Clinic Management System'; // Default name
 $clinic_logo = null;
 if (isset($_SESSION['clinic_id'])) {
-    $stmt = $conn->prepare("SELECT name , Address , logo FROM clinics WHERE id = ?");
+    $stmt = $conn->prepare("SELECT name , Address ,edahab_phone,zaad_phone, logo FROM clinics WHERE id = ?");
     $stmt->bind_param("i", $_SESSION['clinic_id']);
     $stmt->execute();
     $result = $stmt->get_result();
     if ($row = $result->fetch_assoc()) {
         $clinic_name = $row['name'];
         $clinic_address = $row['Address'];
+        $clinic_edahab = $row['edahab_phone'];
+        $clinic_zaad = $row['zaad_phone'];
         $clinic_logo = $row['logo'] ?? null;
     }
     $stmt->close();
@@ -54,12 +56,14 @@ if (!$voucher) {
 <body>
   <div class="voucher">
    <h4 class="text-center mb-4">🧾 <?= htmlspecialchars($clinic_name) ?> Dental Clinic</h4>
-   <span class="text-center">Location <?= htmlspecialchars($clinic_address) ?></span>
+   <h3 class="text-center">Location <?= htmlspecialchars($clinic_address) ?> 
+   Edahab :<?= htmlspecialchars($clinic_edahab) ?>
+   Zaad :<?= htmlspecialchars($clinic_zaad) ?> </h3>
     <hr>
     <p><strong>Voucher ID:</strong> #<?= $voucher['id'] ?></p>
     <p><strong>Patient Name:</strong> <?= htmlspecialchars($voucher['patient_name']) ?></p>
     <p><strong>Service:</strong> <?= htmlspecialchars($voucher['service']) ?></p>
-    <p><strong>Amount Paid:</strong> SLSH <?= number_format($voucher['amount_paid'], 2) ?></p>
+    <p><strong>Amount Paid:</strong> USD/SLSH <?= number_format($voucher['amount_paid'], 2) ?></p>
     <p><strong>Date:</strong> <?= date('d M Y - H:i', strtotime($voucher['date_paid'])) ?></p>
     <hr>
     <p>Signature: ____________________________</p>

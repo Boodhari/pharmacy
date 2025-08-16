@@ -35,6 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name']);
         $email = trim($_POST['email']);
         $phone = trim($_POST['phone']);
+        $edahab_phone = trim($_POST['edahab_phone']);
+        $zaad_phone = trim($_POST['zaad_phone']);
         $address = trim($_POST['address']);
         $start = $_POST['subscription_start'];
         $end = $_POST['subscription_end'];
@@ -44,8 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $admin_password = md5($_POST['admin_password']); // Use password_hash() for better security
 
         // Insert into clinics table
-        $stmt = $conn->prepare("INSERT INTO clinics (name, email, phone, address, subscription_start, subscription_end, status, logo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssssss", $name, $email, $phone, $address, $start, $end, $status, $logo_filename);
+        $stmt = $conn->prepare("INSERT INTO clinics (name, email, phone,edahab_phone, zaad_phone , address, subscription_start, subscription_end, status, logo) VALUES (?, ?, ?, ?, ?, ?, ?, ? ,? ,?)");
+        $stmt->bind_param("ssssssssss", $name, $email, $phone,$edahab_phone,$zaad_phone, $address, $start, $end, $status, $logo_filename);
 
         if ($stmt->execute()) {
             $clinic_id = $stmt->insert_id;
@@ -119,6 +121,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="col-md-6">
       <label>Phone</label>
       <input type="text" name="phone" class="form-control" required>
+    </div>
+      <div class="col-md-6">
+      <label>EDahab Marchent (Ku Iibso)</label>
+      <input type="text" name="edahab_phone" class="form-control" required>
+    </div>
+      <div class="col-md-6">
+      <label>Zaad Marchent(Ku Iibso)</label>
+      <input type="text" name="zaad_phone" class="form-control" required>
     </div>
     <div class="col-md-6">
       <label>Address</label>

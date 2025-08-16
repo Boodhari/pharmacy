@@ -25,6 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name']);
     $email = trim($_POST['email']);
     $phone = trim($_POST['phone']);
+    $edahab_phone = trim($_POST['edahab_phone']);
+    $zaad_phone = trim($_POST['zaad_phone']);
     $address = trim($_POST['address']);
     $start = $_POST['subscription_start'];
     $end = $_POST['subscription_end'];
@@ -56,8 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$error) {
         // Update clinic info
-        $stmt = $conn->prepare("UPDATE clinics SET name=?, email=?, phone=?, address=?, subscription_start=?, subscription_end=?, status=?, logo=? WHERE id=?");
-        $stmt->bind_param("ssssssssi", $name, $email, $phone, $address, $start, $end, $status, $logo_filename, $clinic_id);
+        $stmt = $conn->prepare("UPDATE clinics SET name=?, email=?, phone=?,edahab_phone=?, zaad_phone=?, address=?, subscription_start=?, subscription_end=?, status=?, logo=? WHERE id=?");
+        $stmt->bind_param("ssssssssssi", $name, $email, $phone,$edahab_phone,$zaad_phone, $address, $start, $end, $status, $logo_filename, $clinic_id);
 
         if ($stmt->execute()) {
             $success = "✅ Clinic updated successfully!";
@@ -66,6 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'name' => $name,
                 'email' => $email,
                 'phone' => $phone,
+                'edahab_phone' => $edahab_phone,
+                'zaad_phone' => $zaad_phone,
                 'address' => $address,
                 'subscription_start' => $start,
                 'subscription_end' => $end,
@@ -133,6 +137,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="col-md-6">
       <label>Phone</label>
       <input type="text" name="phone" value="<?= htmlspecialchars($clinic['phone']) ?>" class="form-control" required>
+    </div>
+        <div class="col-md-6">
+      <label>Edahab Marchant (Ku Iibso)</label>
+      <input type="text" name="edahab_phone" value="<?= htmlspecialchars($clinic['edahab_phone']) ?>" class="form-control" required>
+    </div>
+        <div class="col-md-6">
+      <label>Zaad Marchant (Ku Iibso)</label>
+      <input type="text" name="zaad_phone" value="<?= htmlspecialchars($clinic['zaad_phone']) ?>" class="form-control" required>
     </div>
     <div class="col-md-6">
       <label>Address</label>
