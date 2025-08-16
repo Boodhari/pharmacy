@@ -2,11 +2,15 @@
 include 'config/db.php';
 include 'auth_check.php';
 include('includes/header.php');
+
 $id = $_GET['id'] ?? 0;
-$clinic_name = 'Clinic Management System'; // Default name
+
+// Default clinic info
+$clinic_name = 'Clinic Management System';
 $clinic_logo = null;
+
 if (isset($_SESSION['clinic_id'])) {
-    $stmt = $conn->prepare("SELECT name , Address ,edahab_phone,zaad_phone, logo FROM clinics WHERE id = ?");
+    $stmt = $conn->prepare("SELECT name, Address, edahab_phone, zaad_phone, logo FROM clinics WHERE id = ?");
     $stmt->bind_param("i", $_SESSION['clinic_id']);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -22,8 +26,11 @@ if (isset($_SESSION['clinic_id'])) {
     $clinic_name = "Super Admin Panel";
 }
 
-
-$stmt = $conn->prepare("SELECT * FROM vouchers WHERE id = ?");
+// Fetch voucher
+$stmt = $conn->prepare("SELECT v.*, h.total_price AS service_total_price 
+                        FROM vouchers v 
+                        LEFT JOIN history_taking h ON v.history_id = h.id 
+                        WHERE v.id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -47,6 +54,9 @@ if (!$voucher) {
       border: 2px dashed #000;
       background: #fff;
     }
+    .voucher h4, .voucher h5 {
+      margin-bottom: 15px;
+    }
     @media print {
       .no-print { display: none; }
       body { background: #fff; }
@@ -55,16 +65,23 @@ if (!$voucher) {
 </head>
 <body>
   <div class="voucher">
-   <h4 class="text-center text-primary mb-4"> <?= htmlspecialchars($clinic_name) ?> Dental Clinic</h4>
-   <h5 class="text-center">Location : <?= htmlspecialchars($clinic_address) ?> ||
-   Edahab :<?= htmlspecialchars($clinic_edahab) ?> ||
-   Zaad :<?= htmlspecialchars($clinic_zaad) ?> </h5>
+    <h4 class="text-center text-primary mb-2"><?= htmlspecialchars($clinic_name) ?> Dental Clinic</h4>
+    <h5 class="text-center mb-4">
+      Location: <?= htmlspecialchars($clinic_address) ?> ||
+      Edahab: <?= htmlspecialchars($clinic_edahab) ?> ||
+      Zaad: <?= htmlspecialchars($clinic_zaad) ?>
+    </h5>
     <hr>
+
     <p><strong>Voucher ID:</strong> #<?= $voucher['id'] ?></p>
     <p><strong>Patient Name:</strong> <?= htmlspecialchars($voucher['patient_name']) ?></p>
     <p><strong>Service:</strong> <?= htmlspecialchars($voucher['service']) ?></p>
-    <p><strong>Amount Paid:</strong> USD/SLSH <?= number_format($voucher['amount_paid'], 2) ?></p>
+    <p><strong>Service Total:</strong> SLSH <?= number_format($voucher['service_total'], 2) ?></p>
+    <p><strong>Previous Balance:</strong> SLSH <?= number_format($voucher['previous_balance'], 2) ?></p>
+    <p><strong>Amount Paid:</strong> SLSH <?= number_format($voucher['amount_paid'], 2) ?></p>
+    <p><strong>Remaining Balance:</strong> SLSH <?= number_format($voucher['balance'], 2) ?></p>
     <p><strong>Date:</strong> <?= date('d M Y - H:i', strtotime($voucher['date_paid'])) ?></p>
+
     <hr>
     <p>Signature: ____________________________</p>
   </div>
