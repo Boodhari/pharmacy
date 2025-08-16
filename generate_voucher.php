@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Fetch visitors for dropdown
-$visitor_result = $conn->prepare("SELECT id, name FROM visitors WHERE clinic_id = ?");
+$visitor_result = $conn->prepare("SELECT id, full_name FROM visitors WHERE clinic_id = ?");
 $visitor_result->bind_param("i", $clinic_id);
 $visitor_result->execute();
 $visitor_data = $visitor_result->get_result();
@@ -89,7 +89,7 @@ $visitor_data = $visitor_result->get_result();
             <select name="visitor_id" class="form-control" required>
                 <option value="">-- Choose --</option>
                 <?php while ($row = $visitor_data->fetch_assoc()): ?>
-                    <option value="<?= $row['id'] ?>"><?= htmlspecialchars($row['name']) ?></option>
+                    <option value="<?= $row['id'] ?>"><?= htmlspecialchars($row['full_name']) ?></option>
                 <?php endwhile; ?>
             </select>
         </div>
