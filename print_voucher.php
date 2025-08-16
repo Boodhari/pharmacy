@@ -1,7 +1,24 @@
 <?php
 include 'config/db.php';
+include 'auth_check.php';
 include('includes/header.php');
 $id = $_GET['id'] ?? 0;
+$clinic_name = 'Clinic Management System'; // Default name
+$clinic_logo = null;
+if (isset($_SESSION['clinic_id'])) {
+    $stmt = $conn->prepare("SELECT name , logo FROM clinics WHERE id = ?");
+    $stmt->bind_param("i", $_SESSION['clinic_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        $clinic_name = $row['name'];
+        $clinic_logo = $row['logo'] ?? null;
+    }
+    $stmt->close();
+} elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin') {
+    $clinic_name = "Super Admin Panel";
+}
+
 
 $stmt = $conn->prepare("SELECT * FROM vouchers WHERE id = ?");
 $stmt->bind_param("i", $id);
@@ -35,7 +52,7 @@ if (!$voucher) {
 </head>
 <body>
   <div class="voucher">
-    <h4 class="text-center">🧾 Smart Dental Clinic - Payment Voucher</h4>
+   <h4 class="text-center mb-4">🧾 <?= htmlspecialchars($clinic_name) ?></h4>
     <hr>
     <p><strong>Voucher ID:</strong> #<?= $voucher['id'] ?></p>
     <p><strong>Patient Name:</strong> <?= htmlspecialchars($voucher['patient_name']) ?></p>
