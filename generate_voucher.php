@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Insert voucher
     $insert = $conn->prepare("
         INSERT INTO vouchers 
-        (clinic_id, visitor_id, patient_name, history_id, service, amount_paid, service_total, previous_balance, balance, created_at) 
+        (clinic_id, visitor_id, patient_name, history_id, service, amount_paid, service_total, previous_balance, balance, date_paid) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ");
     $insert->bind_param(
