@@ -129,7 +129,8 @@ for ($i = 6; $i >= 0; $i--) {
       ['Visitor View', 'bi-person-lines-fill', 'view_visitors.php', 'dark', 'View all registered visitors.'],
       ['History View', 'bi-person-lines-fill', 'view_history.php', 'dark', 'View medical history records.'],
       ['Create Voucher', 'bi-person-lines-fill', 'generate_voucher.php', 'dark', 'Generate new service vouchers.'],
-      ['Print Vouchers', 'bi-person-lines-fill', 'view_vouchers.php', 'dark', 'View and print service vouchers.']
+      ['Print Vouchers', 'bi-person-lines-fill', 'view_vouchers.php', 'dark', 'View and print service vouchers.'],
+      ['All Payments', 'bi-person-lines-fill', 'allpayments.php', 'dark', 'View all payments vouchers.']
     ];
 
     foreach ($cards as $card) {
