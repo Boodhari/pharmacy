@@ -55,7 +55,7 @@ if (!$voucher) {
 </head>
 <body>
   <div class="voucher">
-   <h4 class="text-center mb-4">🧾 <?= htmlspecialchars($clinic_name) ?> Dental Clinic</h4>
+   <h4 class="text-center text-primary mb-4"> <?= htmlspecialchars($clinic_name) ?> Dental Clinic</h4>
    <h5 class="text-center">Location : <?= htmlspecialchars($clinic_address) ?> ||
    Edahab :<?= htmlspecialchars($clinic_edahab) ?> ||
    Zaad :<?= htmlspecialchars($clinic_zaad) ?> </h5>

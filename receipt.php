@@ -86,7 +86,7 @@ while ($row = $result->fetch_assoc()) {
 </head>
 <body class="bg-light">
 <div class="receipt-card">
-  <h4 class="text-center mb-4">🧾 <?= htmlspecialchars($clinic_name) ?> Dental Clinic</h4>
+  <h4 class="text-center text-primary mb-4"> <?= htmlspecialchars($clinic_name) ?> Dental Clinic</h4>
   <h5 class="text-center">Location : <?= htmlspecialchars($clinic_address) ?> ||
    Edahab :<?= htmlspecialchars($clinic_edahab) ?> ||
    Zaad :<?= htmlspecialchars($clinic_zaad) ?> </h5>
@@ -113,7 +113,7 @@ while ($row = $result->fetch_assoc()) {
     <tfoot>
       <tr>
         <th colspan="3" class="text-end">Total</th>
-        <th><?= number_format($total_amount, 2) ?> SLSH</th>
+        <th><?= number_format($total_amount, 2) ?> USD/SLSH</th>
       </tr>
       <tr>
         <td colspan="4" class="text-end">Date: <?= date('d M Y - H:i', strtotime($sale_date)) ?></td>
