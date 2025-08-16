@@ -26,7 +26,7 @@ if (isset($_SESSION['clinic_id'])) {
     $clinic_name = "Super Admin Panel";
 }
 
-// Fetch current voucher
+// Fetch voucher
 $stmt = $conn->prepare("SELECT v.*, h.total_price AS service_total_price 
                         FROM vouchers v 
                         LEFT JOIN history_taking h ON v.history_id = h.id 
@@ -39,12 +39,6 @@ $voucher = $result->fetch_assoc();
 if (!$voucher) {
     die("Voucher not found.");
 }
-
-// Fetch all previous vouchers for this patient (excluding current)
-$stmt2 = $conn->prepare("SELECT * FROM vouchers WHERE visitor_id = ? AND id != ? ORDER BY date_paid ASC");
-$stmt2->bind_param("ii", $voucher['visitor_id'], $id);
-$stmt2->execute();
-$previous_vouchers = $stmt2->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -54,7 +48,7 @@ $previous_vouchers = $stmt2->get_result();
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     .voucher {
-      width: 800px;
+      width: 600px;
       margin: 40px auto;
       padding: 30px;
       border: 2px dashed #000;
@@ -62,10 +56,6 @@ $previous_vouchers = $stmt2->get_result();
     }
     .voucher h4, .voucher h5 {
       margin-bottom: 15px;
-    }
-    table {
-      width: 100%;
-      margin-top: 15px;
     }
     @media print {
       .no-print { display: none; }
@@ -91,35 +81,6 @@ $previous_vouchers = $stmt2->get_result();
     <p><strong>Amount Paid:</strong> SLSH <?= number_format($voucher['amount_paid'], 2) ?></p>
     <p><strong>Remaining Balance:</strong> SLSH <?= number_format($voucher['balance'], 2) ?></p>
     <p><strong>Date:</strong> <?= date('d M Y - H:i', strtotime($voucher['date_paid'])) ?></p>
-
-    <?php if ($previous_vouchers->num_rows > 0): ?>
-      <hr>
-      <h5>Previous Vouchers</h5>
-      <table class="table table-bordered table-sm">
-        <thead>
-          <tr>
-            <th>#ID</th>
-            <th>Service</th>
-            <th>Service Total</th>
-            <th>Amount Paid</th>
-            <th>Remaining Balance</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php while($prev = $previous_vouchers->fetch_assoc()): ?>
-            <tr>
-              <td>#<?= $prev['id'] ?></td>
-              <td><?= htmlspecialchars($prev['service']) ?></td>
-              <td><?= number_format($prev['service_total'], 2) ?></td>
-              <td><?= number_format($prev['amount_paid'], 2) ?></td>
-              <td><?= number_format($prev['balance'], 2) ?></td>
-              <td><?= date('d M Y', strtotime($prev['date_paid'])) ?></td>
-            </tr>
-          <?php endwhile; ?>
-        </tbody>
-      </table>
-    <?php endif; ?>
 
     <hr>
     <p>Signature: ____________________________</p>
