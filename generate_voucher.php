@@ -23,9 +23,9 @@ $services = $conn->query("
 ");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $visitor_id = intval($_POST['visitor_id']);
-    $history_id = intval($_POST['history_id']);
-    $amount_paid = floatval($_POST['amount_paid']);
+    $visitor_id  = intval($_POST['visitor_id']);
+    $history_id  = intval($_POST['history_id']);
+    $amount_paid = max(0.0, floatval($_POST['amount_paid']));
 
     // Get patient name
     $stmt = $conn->prepare("SELECT full_name FROM visitors WHERE id = ? AND clinic_id = ?");
@@ -39,39 +39,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt2->bind_param("ii", $history_id, $clinic_id);
     $stmt2->execute();
     $service = $stmt2->get_result()->fetch_assoc();
-    $service_name = $service['services'] ?? 'Unknown Service';
+    if (!$service) {
+        die("Selected service not found.");
+    }
+    $service_name  = $service['services'] ?? 'Unknown Service';
     $service_total = floatval($service['total_price'] ?? 0);
 
-    // 1️⃣ Fetch previous unpaid vouchers in order (oldest first)
+    // ✅ Calculate true previous unpaid from older vouchers only
+    //    (do NOT sum v.balance because older rows may contain cumulative totals)
     $stmt3 = $conn->prepare("
-        SELECT id, service_total, amount_paid, balance
+        SELECT COALESCE(SUM(GREATEST(service_total - amount_paid, 0)), 0) AS prev_unpaid
         FROM vouchers
-        WHERE visitor_id = ? AND clinic_id = ? AND balance > 0
-        ORDER BY date_paid ASC
+        WHERE visitor_id = ? AND clinic_id = ?
     ");
     $stmt3->bind_param("ii", $visitor_id, $clinic_id);
     $stmt3->execute();
-    $previous_vouchers = $stmt3->get_result()->fetch_all(MYSQLI_ASSOC);
+    $row = $stmt3->get_result()->fetch_assoc();
+    $previous_balance = floatval($row['prev_unpaid'] ?? 0);
 
-    $remaining_payment = $amount_paid;
-    $previous_balance = 0;
-
-    // 2️⃣ Calculate total previous unpaid
-    foreach ($previous_vouchers as $v) {
-        $previous_balance += $v['balance'];
-    }
-
-    // 3️⃣ Apply current payment to previous balance first
+    // ✅ New remaining after applying this payment to the combined total (oldest-first effect)
     $new_balance = max($previous_balance + $service_total - $amount_paid, 0);
 
-    // Insert new voucher
+    // Insert voucher
     $insert = $conn->prepare("
         INSERT INTO vouchers 
         (clinic_id, visitor_id, patient_name, history_id, service, amount_paid, service_total, previous_balance, balance, date_paid)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ");
+    // types: i (clinic) i (visitor) s (name) i (history) s (service) d d d d
     $insert->bind_param(
-        "iisssdddd",
+        "iisisdddd",
         $clinic_id,
         $visitor_id,
         $patient_name,
@@ -99,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <?php if ($success): ?>
     <div class="alert alert-success">
-        Voucher created! 
+        Voucher created!
         <a href="print_voucher.php?id=<?= $voucher_id ?>" class="btn btn-sm btn-outline-primary">🖨️ Print Voucher</a>
     </div>
 <?php endif; ?>
@@ -129,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="col-md-4">
         <label>Amount Paid (SLSH)</label>
-        <input type="number" step="0.01" name="amount_paid" class="form-control" required>
+        <input type="number" step="0.01" name="amount_paid" class="form-control" min="0" required>
     </div>
 
     <div class="col-12">
