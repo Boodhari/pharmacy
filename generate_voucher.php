@@ -45,28 +45,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $service_name  = $service['services'] ?? 'Unknown Service';
     $service_total = floatval($service['total_price'] ?? 0);
 
-    // ✅ Step 1: calculate previous unpaid amounts (FIFO)
+    // ✅ Step 1: Calculate previous balance correctly
     $prev_stmt = $conn->prepare("
-        SELECT service_total, amount_paid 
-        FROM vouchers 
-        WHERE visitor_id = ? AND clinic_id = ? 
-        ORDER BY date_paid ASC, id ASC
+        SELECT COALESCE(SUM(balance), 0) AS prev_balance
+        FROM vouchers
+        WHERE visitor_id = ? AND clinic_id = ?
     ");
     $prev_stmt->bind_param("ii", $visitor_id, $clinic_id);
     $prev_stmt->execute();
-    $prev_result = $prev_stmt->get_result();
+    $row = $prev_stmt->get_result()->fetch_assoc();
+    $previous_balance = floatval($row['prev_balance'] ?? 0);
 
-    $previous_balance = 0;
-    while ($row = $prev_result->fetch_assoc()) {
-        $remaining = max($row['service_total'] - $row['amount_paid'], 0);
-        $previous_balance += $remaining;
-    }
-
-    // ✅ Step 2: total due = previous unpaid + new service
-    $total_due = $previous_balance + $service_total;
-
-    // ✅ Step 3: calculate new remaining balance after this payment
-    $new_balance = max($total_due - $amount_paid, 0);
+    // ✅ Step 2: Calculate new remaining balance
+    $new_balance = max($previous_balance + $service_total - $amount_paid, 0);
 
     // Insert voucher
     $insert = $conn->prepare("
