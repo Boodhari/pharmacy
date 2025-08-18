@@ -159,6 +159,26 @@ $recent_result = queryOrDie($conn, "SELECT patient_name, doctor_name, date_presc
         </div>
 </div>
       </div>
+        <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-receipt-cutoff display-4 text-danger mb-3"></i>
+          <h5 class="card-title">Treatment Plan</h5>
+          <p class="card-text">Track Treatments .</p>
+          <a href="treatment_plan.php" class="btn btn-outline-warning w-100">Treatment Plan</a>
+        </div>
+</div>
+      </div>
+        <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <i class="bi bi-receipt-cutoff display-4 text-danger mb-3"></i>
+          <h5 class="card-title">All Treatments </h5>
+          <p class="card-text">Track Treatments</p>
+          <a href="all_treatment.php" class="btn btn-outline-warning w-100">All Treatments</a>
+        </div>
+</div>
+      </div>
       
       <div class="col-md-4">
       <div class="card border-0 shadow-sm h-100">
