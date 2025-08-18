@@ -34,6 +34,34 @@ if ($search) {
 
 $stmt->execute();
 $result = $stmt->get_result();
+
+// Pre-calculate correct balances for each service
+$balances = [];
+$vouchers = [];
+while ($row = $result->fetch_assoc()) {
+    $service_key = $row['visitor_id'] . '-' . $row['history_id'];
+    
+    if (!isset($balances[$service_key])) {
+        $balances[$service_key] = 0;
+    }
+    
+    // For the first voucher of a service, add the service total
+    if ($balances[$service_key] == 0) {
+        $service_total = $row['history_total'] ?? $row['service_total'];
+        $balances[$service_key] = $service_total;
+    }
+    
+    // Calculate remaining balance
+    $amount_paid = $row['amount_paid'];
+    $remaining_balance = max($balances[$service_key] - $amount_paid, 0);
+    
+    // Store voucher with corrected balance
+    $row['corrected_balance'] = $remaining_balance;
+    $vouchers[] = $row;
+    
+    // Update balance for next voucher
+    $balances[$service_key] = $remaining_balance;
+}
 ?>
 
 <div class="container mt-4">
@@ -41,7 +69,8 @@ $result = $stmt->get_result();
 
     <!-- Search Form -->
     <form method="get" class="mb-3 d-flex">
-        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" class="form-control me-2" placeholder="Search patient name...">
+        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" 
+               class="form-control me-2" placeholder="Search patient name...">
         <button type="submit" class="btn btn-primary">🔍 Search</button>
     </form>
 
@@ -59,30 +88,21 @@ $result = $stmt->get_result();
             </tr>
         </thead>
         <tbody>
-            <?php if ($result->num_rows > 0): ?>
-                <?php while ($row = $result->fetch_assoc()): ?>
-                    <?php
-                        // Correct calculation
-                        $service_total = $row['history_total'] ?? $row['service_total'];
-                        $previous_balance = $row['previous_balance'];
-                        $amount_paid = $row['amount_paid'];
-
-                        $remaining_balance = ($service_total + $previous_balance) - $amount_paid;
-                        if ($remaining_balance < 0) $remaining_balance = 0;
-                    ?>
+            <?php if (count($vouchers) > 0): ?>
+                <?php foreach ($vouchers as $row): ?>
                     <tr>
                         <td><?= $row['id'] ?></td>
                         <td><?= htmlspecialchars($row['patient_name']) ?></td>
                         <td><?= htmlspecialchars($row['service']) ?></td>
-                        <td><?= number_format($service_total, 2) ?></td>
-                        <td><?= number_format($amount_paid, 2) ?></td>
-                        <td><?= number_format($remaining_balance, 2) ?></td>
+                        <td><?= number_format($row['history_total'] ?? $row['service_total'], 2) ?></td>
+                        <td><?= number_format($row['amount_paid'], 2) ?></td>
+                        <td><?= number_format($row['corrected_balance'], 2) ?></td>
                         <td><?= date('d M Y', strtotime($row['date_paid'])) ?></td>
                         <td>
                             <a href="print_voucher.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-success">🖨️ Print</a>
                         </td>
                     </tr>
-                <?php endwhile; ?>
+                <?php endforeach; ?>
             <?php else: ?>
                 <tr>
                     <td colspan="8" class="text-center">No records found.</td>
