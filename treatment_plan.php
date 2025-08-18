@@ -1,7 +1,7 @@
 <?php
 session_start();
 include 'config/db.php';
-include 'includes/auth_check.php';
+include('includes/header.php');
 
 // Initialize variables
 $error = '';
