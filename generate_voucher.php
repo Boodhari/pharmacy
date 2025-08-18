@@ -6,20 +6,42 @@ include('includes/header.php');
 $success = false;
 $error = '';
 $clinic_id = $_SESSION['clinic_id'] ?? 0;
+$search_phone = $_GET['search_phone'] ?? '';
 
 // Generate CSRF token
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// Fetch visitors
-$visitors = $conn->prepare("SELECT id, full_name, purpose FROM visitors WHERE clinic_id = ? ORDER BY visit_date DESC");
-$visitors->bind_param("i", $clinic_id);
+// Fetch visitors with optional phone search
+if ($search_phone) {
+    $visitors = $conn->prepare("
+        SELECT id, full_name, purpose, phone 
+        FROM visitors 
+        WHERE clinic_id = ? AND phone LIKE ?
+        ORDER BY visit_date DESC
+    ");
+    $like_phone = "%" . $search_phone . "%";
+    $visitors->bind_param("is", $clinic_id, $like_phone);
+} else {
+    $visitors = $conn->prepare("
+        SELECT id, full_name, purpose, phone 
+        FROM visitors 
+        WHERE clinic_id = ? 
+        ORDER BY visit_date DESC
+    ");
+    $visitors->bind_param("i", $clinic_id);
+}
 $visitors->execute();
 $visitor_result = $visitors->get_result();
 
 // Fetch services
-$services = $conn->prepare("SELECT id, services, total_price FROM history_taking WHERE clinic_id = ? ORDER BY date_taken DESC");
+$services = $conn->prepare("
+    SELECT id, services, total_price 
+    FROM history_taking 
+    WHERE clinic_id = ? 
+    ORDER BY date_taken DESC
+");
 $services->bind_param("i", $clinic_id);
 $services->execute();
 $service_result = $services->get_result();
@@ -114,6 +136,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <title>Generate Payment Voucher</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .search-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body class="container py-5">
     <h2 class="mb-4">🧾 Generate Voucher</h2>
@@ -127,6 +157,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
+    <!-- Phone Search Form -->
+    <div class="search-container mb-4">
+        <form method="GET" class="row g-3">
+            <div class="col-md-8">
+                <label>Search Patient by Phone</label>
+                <input type="text" name="search_phone" value="<?= htmlspecialchars($search_phone) ?>" 
+                       class="form-control" placeholder="Enter phone number...">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">🔍 Search</button>
+                <?php if ($search_phone): ?>
+                    <a href="generate_voucher.php" class="btn btn-outline-secondary">Clear</a>
+                <?php endif; ?>
+            </div>
+        </form>
+    </div>
+
     <form method="POST" class="row g-3">
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
         
@@ -136,7 +183,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <option value="">-- Choose Patient --</option>
                 <?php while ($v = $visitor_result->fetch_assoc()): ?>
                     <option value="<?= htmlspecialchars($v['id']) ?>">
-                        <?= htmlspecialchars($v['full_name']) ?> - <?= htmlspecialchars($v['purpose']) ?>
+                        <?= htmlspecialchars($v['full_name']) ?> 
+                        (<?= htmlspecialchars($v['phone']) ?> - <?= htmlspecialchars($v['purpose']) ?>)
                     </option>
                 <?php endwhile; ?>
             </select>
