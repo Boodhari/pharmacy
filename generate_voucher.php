@@ -25,83 +25,87 @@ $services->execute();
 $service_result = $services->get_result();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // CSRF check
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-        $error = "Invalid CSRF token.";
-    } else {
-        $visitor_id  = intval($_POST['visitor_id']);
-        $history_id  = intval($_POST['history_id']);
-        $amount_paid = max(0.0, floatval($_POST['amount_paid']));
+    $visitor_id  = intval($_POST['visitor_id']);
+    $history_id  = intval($_POST['history_id']);
+    $amount_paid = max(0.0, floatval($_POST['amount_paid']));
 
-        // Validate visitor
-        $stmt = $conn->prepare("SELECT full_name FROM visitors WHERE id = ? AND clinic_id = ?");
-        $stmt->bind_param("ii", $visitor_id, $clinic_id);
-        $stmt->execute();
-        $visitor = $stmt->get_result()->fetch_assoc();
-        if (!$visitor) {
-            $error = "Invalid visitor selected.";
-        } else {
-            $patient_name = $visitor['full_name'];
+    // Get patient name
+    $stmt = $conn->prepare("SELECT full_name FROM visitors WHERE id = ? AND clinic_id = ?");
+    $stmt->bind_param("ii", $visitor_id, $clinic_id);
+    $stmt->execute();
+    $visitor = $stmt->get_result()->fetch_assoc();
+    $patient_name = $visitor['full_name'] ?? 'Unknown';
 
-            // Validate service
-            $stmt2 = $conn->prepare("SELECT services, total_price FROM history_taking WHERE id = ? AND clinic_id = ?");
-            $stmt2->bind_param("ii", $history_id, $clinic_id);
-            $stmt2->execute();
-            $service = $stmt2->get_result()->fetch_assoc();
-            if (!$service) {
-                $error = "Selected service not found.";
-            } else {
-                $service_name  = $service['services'];
-                $service_total = floatval($service['total_price']);
-
-                // Calculate previous unpaid balance
-                $prev_stmt = $conn->prepare("
-                    SELECT service_total, amount_paid 
-                    FROM vouchers 
-                    WHERE visitor_id = ? AND clinic_id = ? 
-                    ORDER BY date_paid ASC, id ASC
-                ");
-                $prev_stmt->bind_param("ii", $visitor_id, $clinic_id);
-                $prev_stmt->execute();
-                $prev_result = $prev_stmt->get_result();
-
-                $previous_balance = 0;
-                while ($row = $prev_result->fetch_assoc()) {
-                    $remaining = max($row['service_total'] - $row['amount_paid'], 0);
-                    $previous_balance += $remaining;
-                }
-
-                $total_due = $previous_balance + $service_total;
-                $new_balance = max($total_due - $amount_paid, 0);
-
-                // Insert voucher
-                $insert = $conn->prepare("
-                    INSERT INTO vouchers 
-                    (clinic_id, visitor_id, patient_name, history_id, service, amount_paid, service_total, previous_balance, balance, date_paid)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-                ");
-                $insert->bind_param(
-                    "iisisdddd",
-                    $clinic_id,
-                    $visitor_id,
-                    $patient_name,
-                    $history_id,
-                    $service_name,
-                    $amount_paid,
-                    $service_total,
-                    $previous_balance,
-                    $new_balance
-                );
-                if ($insert->execute()) {
-                    $voucher_id = $insert->insert_id;
-                    $success = true;
-                } else {
-                    $error = "Failed to save voucher. Please try again.";
-                }
-            }
-        }
+    // Get service details
+    $stmt2 = $conn->prepare("SELECT services, total_price FROM history_taking WHERE id = ? AND clinic_id = ?");
+    $stmt2->bind_param("ii", $history_id, $clinic_id);
+    $stmt2->execute();
+    $service = $stmt2->get_result()->fetch_assoc();
+    if (!$service) {
+        die("Selected service not found.");
     }
+    $service_name  = $service['services'] ?? 'Unknown Service';
+    $service_total = floatval($service['total_price'] ?? 0);
+
+    // ✅ Step 1: calculate unpaid amount for this specific service
+    $paid_stmt = $conn->prepare("
+        SELECT SUM(amount_paid) AS total_paid 
+        FROM vouchers 
+        WHERE history_id = ? AND visitor_id = ? AND clinic_id = ?
+    ");
+    $paid_stmt->bind_param("iii", $history_id, $visitor_id, $clinic_id);
+    $paid_stmt->execute();
+    $paid_result = $paid_stmt->get_result()->fetch_assoc();
+    $already_paid = floatval($paid_result['total_paid'] ?? 0);
+
+    $remaining_for_service = max($service_total - $already_paid, 0);
+
+    // ✅ Step 2: calculate unpaid balances from other services (FIFO)
+    $prev_stmt = $conn->prepare("
+        SELECT service_total, amount_paid 
+        FROM vouchers 
+        WHERE visitor_id = ? AND clinic_id = ? AND history_id != ?
+        ORDER BY date_paid ASC, id ASC
+    ");
+    $prev_stmt->bind_param("iii", $visitor_id, $clinic_id, $history_id);
+    $prev_stmt->execute();
+    $prev_result = $prev_stmt->get_result();
+
+    $previous_balance = 0;
+    while ($row = $prev_result->fetch_assoc()) {
+        $remaining = max($row['service_total'] - $row['amount_paid'], 0);
+        $previous_balance += $remaining;
+    }
+
+    // ✅ Step 3: total due = unpaid from other services + remaining for this service
+    $total_due = $previous_balance + $remaining_for_service;
+
+    // ✅ Step 4: new balance after payment
+    $new_balance = max($total_due - $amount_paid, 0);
+
+    // Insert voucher
+    $insert = $conn->prepare("
+        INSERT INTO vouchers 
+        (clinic_id, visitor_id, patient_name, history_id, service, amount_paid, service_total, previous_balance, balance, date_paid)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+    ");
+    $insert->bind_param(
+        "iisisdddd",
+        $clinic_id,
+        $visitor_id,
+        $patient_name,
+        $history_id,
+        $service_name,
+        $amount_paid,
+        $service_total,
+        $previous_balance,
+        $new_balance
+    );
+    $insert->execute();
+    $voucher_id = $insert->insert_id;
+    $success = true;
 }
+
 ?>
 
 <!DOCTYPE html>
