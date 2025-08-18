@@ -22,6 +22,7 @@ $result = $conn->query("SELECT * FROM history_taking where clinic_id =" . intval
           <th>Symptoms</th>
           <th>Services</th>
           <th>Total Price (SLSH)</th>
+          <th>Generate Voucher</th>
         </tr>
       </thead>
       <tbody>
@@ -33,6 +34,9 @@ $result = $conn->query("SELECT * FROM history_taking where clinic_id =" . intval
           <td><?= nl2br(htmlspecialchars($row['symptoms'])) ?></td>
           <td><?= nl2br(htmlspecialchars($row['services'])) ?></td>
           <td><?= number_format($row['total_price'], 2) ?></td>
+          <td>
+            <a href="generate_voucher.php"> 🖨️ Create Voucher</a>
+          </td>
         </tr>
         <?php endwhile; ?>
       </tbody>
