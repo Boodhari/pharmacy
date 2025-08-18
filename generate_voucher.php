@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         $error = "Invalid CSRF token.";
     } else {
-        $visitor_id  = intval($_POST['visitor_id']);
-        $history_id  = intval($_POST['history_id']);
+        $visitor_id = intval($_POST['visitor_id']);
+        $history_id = intval($_POST['history_id']);
         $amount_paid = max(0.0, floatval($_POST['amount_paid']));
 
         // Get patient name
@@ -45,53 +45,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt2->bind_param("ii", $history_id, $clinic_id);
         $stmt2->execute();
         $service = $stmt2->get_result()->fetch_assoc();
+
         if (!$service) {
             $error = "Selected service not found.";
         } else {
-            $service_name  = $service['services'];
+            $service_name = $service['services'];
             $service_total = floatval($service['total_price']);
 
-            // ✅ Calculate total unpaid balance across all vouchers
+            // Calculate total unpaid balance (sum of all unpaid amounts from previous vouchers)
             $balance_stmt = $conn->prepare("
-                SELECT service_total, amount_paid 
+                SELECT SUM(service_total - amount_paid) AS total_unpaid 
                 FROM vouchers 
-                WHERE visitor_id = ? AND clinic_id = ?
-                ORDER BY date_paid ASC, id ASC
+                WHERE visitor_id = ? AND clinic_id = ? AND history_id = ?
             ");
-            $balance_stmt->bind_param("ii", $visitor_id, $clinic_id);
+            $balance_stmt->bind_param("iii", $visitor_id, $clinic_id, $history_id);
             $balance_stmt->execute();
-            $balance_result = $balance_stmt->get_result();
+            $balance_result = $balance_stmt->get_result()->fetch_assoc();
+            $previous_balance = floatval($balance_result['total_unpaid'] ?? 0);
 
-            $previous_balance = 0;
-            while ($row = $balance_result->fetch_assoc()) {
-                $remaining = max($row['service_total'] - $row['amount_paid'], 0);
-                $previous_balance += $remaining;
-            }
-
-            // ✅ Total due = previous unpaid + new service
+            // Total due = previous unpaid + new service
             $total_due = $previous_balance + $service_total;
 
-            // ✅ New balance after payment
+            // New balance after payment
             $new_balance = max($total_due - $amount_paid, 0);
 
             // Insert voucher
             $insert = $conn->prepare("
-                INSERT INTO vouchers 
-                (clinic_id, visitor_id, patient_name, history_id, service, amount_paid, service_total, previous_balance, balance, date_paid)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                INSERT INTO vouchers (
+                    clinic_id, visitor_id, patient_name, history_id, 
+                    service, amount_paid, service_total, 
+                    previous_balance, balance, date_paid
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
             ");
             $insert->bind_param(
-                "iisisdddd",
-                $clinic_id,
-                $visitor_id,
-                $patient_name,
-                $history_id,
-                $service_name,
-                $amount_paid,
-                $service_total,
-                $previous_balance,
-                $new_balance
+                "iisisdddd", 
+                $clinic_id, $visitor_id, $patient_name, $history_id, 
+                $service_name, $amount_paid, $service_total, 
+                $previous_balance, $new_balance
             );
+
             if ($insert->execute()) {
                 $voucher_id = $insert->insert_id;
                 $success = true;
@@ -102,7 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -110,55 +101,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="container py-5">
-<h2 class="mb-4">🧾 Generate Voucher</h2>
+    <h2 class="mb-4">🧾 Generate Voucher</h2>
+    
+    <?php if ($success): ?>
+        <div class="alert alert-success">
+            Voucher created! 
+            <a href="print_voucher.php?id=<?= htmlspecialchars($voucher_id) ?>" class="btn btn-sm btn-outline-primary">🖨️ Print Voucher</a>
+        </div>
+    <?php elseif ($error): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
 
-<?php if ($success): ?>
-    <div class="alert alert-success">
-        Voucher created!
-        <a href="print_voucher.php?id=<?= htmlspecialchars($voucher_id) ?>" class="btn btn-sm btn-outline-primary">🖨️ Print Voucher</a>
-    </div>
-<?php elseif ($error): ?>
-    <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-<?php endif; ?>
+    <form method="POST" class="row g-3">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+        
+        <div class="col-md-6">
+            <label>Select Visitor</label>
+            <select name="visitor_id" class="form-select" required>
+                <option value="">-- Choose Patient --</option>
+                <?php while ($v = $visitor_result->fetch_assoc()): ?>
+                    <option value="<?= htmlspecialchars($v['id']) ?>">
+                        <?= htmlspecialchars($v['full_name']) ?> - <?= htmlspecialchars($v['purpose']) ?>
+                    </option>
+                <?php endwhile; ?>
+            </select>
+        </div>
+        
+        <div class="col-md-6">
+            <label>Select Service</label>
+            <select name="history_id" class="form-select" required>
+                <option value="">-- Choose Service --</option>
+                <?php while ($s = $service_result->fetch_assoc()): ?>
+                    <option value="<?= htmlspecialchars($s['id']) ?>">
+                        <?= htmlspecialchars($s['services']) ?> - <?= number_format($s['total_price'], 2) ?> SLSH
+                    </option>
+                <?php endwhile; ?>
+            </select>
+        </div>
+        
+        <div class="col-md-4">
+            <label>Amount Paid (SLSH)</label>
+            <input type="number" step="0.01" name="amount_paid" class="form-control" min="0" required>
+        </div>
+        
+        <div class="col-12">
+            <button type="submit" class="btn btn-success">💾 Save Voucher</button>
+            <a href="dashboard.php" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
 
-<form method="POST" class="row g-3">
-    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-
-    <div class="col-md-6">
-        <label>Select Visitor</label>
-        <select name="visitor_id" class="form-select" required>
-            <option value="">-- Choose Patient --</option>
-            <?php while ($v = $visitor_result->fetch_assoc()): ?>
-                <option value="<?= htmlspecialchars($v['id']) ?>">
-                    <?= htmlspecialchars($v['full_name']) ?> - <?= htmlspecialchars($v['purpose']) ?>
-                </option>
-            <?php endwhile; ?>
-        </select>
-    </div>
-
-    <div class="col-md-6">
-        <label>Select Service</label>
-        <select name="history_id" class="form-select" required>
-            <option value="">-- Choose Service --</option>
-            <?php while ($s = $service_result->fetch_assoc()): ?>
-                <option value="<?= htmlspecialchars($s['id']) ?>">
-                    <?= htmlspecialchars($s['services']) ?> - <?= number_format($s['total_price'], 2) ?> SLSH
-                </option>
-            <?php endwhile; ?>
-        </select>
-    </div>
-
-    <div class="col-md-4">
-        <label>Amount Paid (SLSH)</label>
-        <input type="number" step="0.01" name="amount_paid" class="form-control" min="0" required>
-    </div>
-
-    <div class="col-12">
-        <button type="submit" class="btn btn-success">💾 Save Voucher</button>
-        <a href="dashboard.php" class="btn btn-secondary">Cancel</a>
-    </div>
-</form>
-
-<?php include 'includes/footer.php'; ?>
+    <?php include 'includes/footer.php'; ?>
 </body>
 </html>
