@@ -4,20 +4,17 @@ include 'config/db.php';
 include 'auth_check.php';
 include('includes/header.php');
 
-// Get clinic_id from session
 $clinic_id = $_SESSION['clinic_id'] ?? 0;
-
-// Search
 $search = $_GET['search'] ?? '';
 
-// Fetch vouchers with optional search
+// Get all vouchers with their service totals
 if ($search) {
     $stmt = $conn->prepare("
         SELECT v.*, h.total_price AS history_total
         FROM vouchers v
         LEFT JOIN history_taking h ON v.history_id = h.id
         WHERE v.clinic_id = ? AND v.patient_name LIKE ?
-        ORDER BY v.date_paid DESC
+        ORDER BY v.history_id, v.id ASC
     ");
     $like = "%" . $search . "%";
     $stmt->bind_param("is", $clinic_id, $like);
@@ -27,7 +24,7 @@ if ($search) {
         FROM vouchers v
         LEFT JOIN history_taking h ON v.history_id = h.id
         WHERE v.clinic_id = ?
-        ORDER BY v.date_paid DESC
+        ORDER BY v.history_id, v.id ASC
     ");
     $stmt->bind_param("i", $clinic_id);
 }
@@ -35,39 +32,40 @@ if ($search) {
 $stmt->execute();
 $result = $stmt->get_result();
 
-// Pre-calculate correct balances for each service
-$balances = [];
-$vouchers = [];
+// Process vouchers to calculate correct balances
+$serviceBalances = [];
+$processedVouchers = [];
+
 while ($row = $result->fetch_assoc()) {
-    $service_key = $row['visitor_id'] . '-' . $row['history_id'];
+    $serviceKey = $row['history_id'];
     
-    if (!isset($balances[$service_key])) {
-        $balances[$service_key] = 0;
-    }
-    
-    // For the first voucher of a service, add the service total
-    if ($balances[$service_key] == 0) {
-        $service_total = $row['history_total'] ?? $row['service_total'];
-        $balances[$service_key] = $service_total;
+    if (!isset($serviceBalances[$serviceKey])) {
+        // First voucher for this service - initialize with service total
+        $serviceTotal = $row['history_total'] ?? $row['service_total'];
+        $serviceBalances[$serviceKey] = $serviceTotal;
     }
     
     // Calculate remaining balance
-    $amount_paid = $row['amount_paid'];
-    $remaining_balance = max($balances[$service_key] - $amount_paid, 0);
+    $amountPaid = $row['amount_paid'];
+    $remainingBalance = max($serviceBalances[$serviceKey] - $amountPaid, 0);
     
-    // Store voucher with corrected balance
-    $row['corrected_balance'] = $remaining_balance;
-    $vouchers[] = $row;
+    // Store the calculated balance
+    $row['corrected_balance'] = $remainingBalance;
+    $row['corrected_previous'] = $serviceBalances[$serviceKey];
     
-    // Update balance for next voucher
-    $balances[$service_key] = $remaining_balance;
+    // Update the balance for next voucher
+    $serviceBalances[$serviceKey] = $remainingBalance;
+    
+    $processedVouchers[] = $row;
 }
+
+// Reverse to show newest first
+$processedVouchers = array_reverse($processedVouchers);
 ?>
 
 <div class="container mt-4">
     <h3 class="mb-4">📋 Previous Payments</h3>
 
-    <!-- Search Form -->
     <form method="get" class="mb-3 d-flex">
         <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" 
                class="form-control me-2" placeholder="Search patient name...">
@@ -82,20 +80,22 @@ while ($row = $result->fetch_assoc()) {
                 <th>Service</th>
                 <th>Service Total</th>
                 <th>Amount Paid</th>
+                <th>Previous Balance</th>
                 <th>Remaining Balance</th>
                 <th>Date</th>
                 <th>Print</th>
             </tr>
         </thead>
         <tbody>
-            <?php if (count($vouchers) > 0): ?>
-                <?php foreach ($vouchers as $row): ?>
+            <?php if (!empty($processedVouchers)): ?>
+                <?php foreach ($processedVouchers as $row): ?>
                     <tr>
                         <td><?= $row['id'] ?></td>
                         <td><?= htmlspecialchars($row['patient_name']) ?></td>
                         <td><?= htmlspecialchars($row['service']) ?></td>
                         <td><?= number_format($row['history_total'] ?? $row['service_total'], 2) ?></td>
                         <td><?= number_format($row['amount_paid'], 2) ?></td>
+                        <td><?= number_format($row['corrected_previous'], 2) ?></td>
                         <td><?= number_format($row['corrected_balance'], 2) ?></td>
                         <td><?= date('d M Y', strtotime($row['date_paid'])) ?></td>
                         <td>
@@ -105,7 +105,7 @@ while ($row = $result->fetch_assoc()) {
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="8" class="text-center">No records found.</td>
+                    <td colspan="9" class="text-center">No records found.</td>
                 </tr>
             <?php endif; ?>
         </tbody>
